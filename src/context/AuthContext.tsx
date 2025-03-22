@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { AuthState, User, Role } from '@/types';
 import { authAPI } from '@/services/api';
@@ -147,12 +146,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // const response = await authAPI.login(email, password);
       
       // For demo purposes, we'll simulate a successful login
+      const userRole: Role = email.includes('admin') 
+        ? 'admin' 
+        : email.includes('librarian') 
+          ? 'librarian' 
+          : 'reader';
+          
       const simulatedResponse = {
         user: {
           id: '1',
           name: email.split('@')[0],
           email,
-          role: email.includes('admin') ? 'admin' : email.includes('librarian') ? 'librarian' : 'reader',
+          role: userRole,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
         },

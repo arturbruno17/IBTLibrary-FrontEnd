@@ -1,101 +1,125 @@
 
-import { useState, useEffect, useCallback } from 'react';
-import { BrowserMultiFormatReader, Result, BarcodeFormat } from '@zxing/library';
+import { useState, useCallback, useEffect, useRef } from 'react';
+import { BrowserMultiFormatReader, BarcodeFormat, DecodeHintType } from '@zxing/library';
 
-interface UseScannerProps {
+interface ScannerOptions {
   onDetected: (result: string) => void;
-  cameraId?: string;
 }
 
-export function useScanner({ onDetected, cameraId }: UseScannerProps) {
+export function useScanner({ onDetected }: ScannerOptions) {
   const [isScanning, setIsScanning] = useState(false);
   const [cameras, setCameras] = useState<MediaDeviceInfo[]>([]);
-  const [selectedCamera, setSelectedCamera] = useState<string | undefined>(cameraId);
-  const [error, setError] = useState<string | null>(null);
+  const [selectedCamera, setSelectedCamera] = useState<string>('');
+  const [error, setError] = useState<string>('');
+  
+  const readerRef = useRef<BrowserMultiFormatReader | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
 
-  // Initialize scanner
-  const reader = new BrowserMultiFormatReader(undefined, {
-    delayBetweenScanAttempts: 100,
-    delayBetweenScanSuccess: 500,
-  });
+  // Initialize the barcode reader
+  useEffect(() => {
+    // Create hints to optimize for ISBN barcodes
+    const hints = new Map();
+    const formats = [
+      BarcodeFormat.EAN_13,
+      BarcodeFormat.EAN_8,
+      BarcodeFormat.UPC_A,
+      BarcodeFormat.UPC_E,
+      BarcodeFormat.CODE_39,
+      BarcodeFormat.CODE_128
+    ];
+    
+    hints.set(DecodeHintType.POSSIBLE_FORMATS, formats);
+    
+    // Create and configure the reader
+    const reader = new BrowserMultiFormatReader(hints, {
+      delayBetweenScanAttempts: 100,
+      delayBetweenScanSuccess: 500
+    });
+    
+    readerRef.current = reader;
+    
+    return () => {
+      if (readerRef.current) {
+        readerRef.current.reset();
+      }
+    };
+  }, []);
 
   // Get available cameras
   const getCameras = useCallback(async () => {
     try {
-      const devices = await navigator.mediaDevices.enumerateDevices();
-      const videoDevices = devices.filter(device => device.kind === 'videoinput');
-      setCameras(videoDevices);
+      setError('');
+      if (!readerRef.current) return;
       
-      // If no camera is selected and we have cameras, select the first one
-      if (!selectedCamera && videoDevices.length > 0) {
-        setSelectedCamera(videoDevices[0].deviceId);
+      const devices = await readerRef.current.listVideoInputDevices();
+      setCameras(devices);
+      
+      if (devices.length > 0 && !selectedCamera) {
+        setSelectedCamera(devices[0].deviceId);
       }
     } catch (err) {
-      console.error('Error getting cameras:', err);
-      setError('Failed to access cameras. Please check permissions.');
+      console.error('Error accessing cameras:', err);
+      setError('Could not access cameras. Please check your permissions.');
     }
   }, [selectedCamera]);
 
-  // Start scanning
+  // Start scanning for barcodes
   const startScanning = useCallback(async () => {
-    if (!selectedCamera) {
-      setError('No camera selected');
-      return;
-    }
-
     try {
+      setError('');
+      if (!readerRef.current || !selectedCamera) {
+        if (cameras.length === 0) {
+          await getCameras();
+        }
+        return;
+      }
+      
       setIsScanning(true);
-      setError(null);
       
-      // Configure hints to only detect EAN and ISBN formats for better performance
-      const formats = [
-        BarcodeFormat.EAN_8,
-        BarcodeFormat.EAN_13,
-        BarcodeFormat.ISBN
-      ];
-      
-      reader.setHints(formats);
-      
-      await reader.decodeFromVideoDevice(
+      await readerRef.current.decodeFromVideoDevice(
         selectedCamera,
         'video-preview',
-        (result: Result | null) => {
+        (result, error) => {
           if (result) {
             const text = result.getText();
             onDetected(text);
+          }
+          
+          if (error && !(error instanceof Error)) {
+            // Ignore normal operation errors
           }
         }
       );
     } catch (err) {
       console.error('Error starting scanner:', err);
-      setError('Failed to start scanner. Please check camera permissions.');
+      setError('Failed to start the barcode scanner.');
       setIsScanning(false);
     }
-  }, [selectedCamera, onDetected, reader]);
+  }, [cameras, getCameras, onDetected, selectedCamera]);
 
   // Stop scanning
   const stopScanning = useCallback(() => {
-    if (isScanning) {
-      reader.reset();
+    if (readerRef.current) {
+      readerRef.current.reset();
       setIsScanning(false);
     }
-  }, [isScanning, reader]);
+  }, []);
 
-  // Change camera
+  // Change selected camera
   const changeCamera = useCallback((deviceId: string) => {
-    stopScanning();
-    setSelectedCamera(deviceId);
-  }, [stopScanning]);
-
-  // Load cameras on mount
-  useEffect(() => {
-    getCameras();
-    
-    // Cleanup on unmount
-    return () => {
+    if (isScanning) {
       stopScanning();
-    };
-  }, [getCameras, stopScanning]);
+    }
+    
+    setSelectedCamera(deviceId);
+    
+    // Restart scanning after a short delay
+    setTimeout(() => {
+      if (deviceId) {
+        startScanning();
+      }
+    }, 500);
+  }, [isScanning, startScanning, stopScanning]);
 
   return {
     isScanning,
@@ -104,8 +128,7 @@ export function useScanner({ onDetected, cameraId }: UseScannerProps) {
     cameras,
     selectedCamera,
     changeCamera,
-    error,
+    getCameras,
+    error
   };
 }
-
-export default useScanner;

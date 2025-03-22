@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import { useAuth } from '@/context/AuthContext';
@@ -14,7 +13,8 @@ import {
   BookCopy,
   CalendarPlus,
   ChevronDown,
-  RefreshCw
+  RefreshCw,
+  BookOpen
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import {
@@ -46,6 +46,7 @@ import {
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Link } from 'react-router-dom';
+import { Label } from '@/components/ui/label';
 
 // Mock data for loans
 const mockLoans: Loan[] = [
