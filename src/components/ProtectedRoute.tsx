@@ -1,38 +1,33 @@
 
-import React from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
+import { Navigate } from 'react-router-dom';
 import { Role } from '@/types';
-import { Loader2 } from 'lucide-react';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  allowedRoles?: Role[];
+  allowedRoles?: Role | Role[];
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
-  children, 
-  allowedRoles 
-}) => {
-  const { isAuthenticated, loading, user } = useAuth();
-  const location = useLocation();
+const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
+  const { isAuthenticated, loading, hasRole } = useAuth();
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
+    return <div>Loading...</div>;
   }
 
   if (!isAuthenticated) {
-    // Redirect to login page with return url
-    return <Navigate to="/login" state={{ from: location.pathname }} replace />;
+    return <Navigate to="/login" replace />;
   }
 
-  if (allowedRoles && user && !allowedRoles.includes(user.role)) {
-    // If user doesn't have the required role, redirect to dashboard
-    return <Navigate to="/dashboard" replace />;
+  // If there are allowed roles specified, check if user has permission
+  if (allowedRoles) {
+    const hasPermission = Array.isArray(allowedRoles)
+      ? allowedRoles.some(role => hasRole(role))
+      : hasRole(allowedRoles);
+
+    if (!hasPermission) {
+      return <Navigate to="/dashboard" replace />;
+    }
   }
 
   return <>{children}</>;

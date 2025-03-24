@@ -5,7 +5,6 @@ import { useScanner } from '@/hooks/useScanner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CameraOff, Camera, RefreshCw, Scan, BookOpen } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 
 interface BarcodeScannerProps {
@@ -38,14 +37,24 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({
     onDetected: handleDetection
   });
   
-  // Start scanning when component becomes visible
+  // Initialize and force camera permissions when component becomes visible
   useEffect(() => {
     if (isVisible) {
-      if (scanner.cameras.length > 0) {
-        scanner.startScanning();
-      } else {
-        scanner.getCameras();
-      }
+      // Request camera permission explicitly
+      navigator.mediaDevices.getUserMedia({ video: true })
+        .then(() => {
+          // After getting permission, try to get cameras
+          scanner.getCameras().then(() => {
+            // Start scanning if cameras are available
+            if (scanner.cameras.length > 0) {
+              setTimeout(() => scanner.startScanning(), 500);
+            }
+          });
+        })
+        .catch(err => {
+          console.error('Camera permission denied:', err);
+          toast.error('Camera access denied. Please check your browser permissions.');
+        });
     } else {
       scanner.stopScanning();
     }
@@ -75,6 +84,15 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({
           {scanner.error && (
             <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">
               {scanner.error}
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => scanner.getCameras()}
+                className="mt-2 w-full"
+              >
+                <RefreshCw className="h-3 w-3 mr-1" />
+                Retry
+              </Button>
             </div>
           )}
           
@@ -87,6 +105,7 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({
                   className="w-full h-full object-cover"
                   muted
                   playsInline
+                  autoPlay
                 />
                 
                 {/* Scanning overlay */}

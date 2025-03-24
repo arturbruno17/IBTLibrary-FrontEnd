@@ -61,14 +61,19 @@ export const booksAPI = {
   },
   create: async (book: Partial<Book>) => {
     const response = await api.post<Book>('/books', book);
+    // Add a success toast when book is created
+    toast.success(`Book "${book.title}" added successfully`);
     return response.data;
   },
   update: async (id: string, book: Partial<Book>) => {
     const response = await api.put<Book>(`/books/${id}`, book);
+    // Add a success toast when book is updated
+    toast.success(`Book "${book.title}" updated successfully`);
     return response.data;
   },
   delete: async (id: string) => {
     const response = await api.delete(`/books/${id}`);
+    toast.success('Book deleted successfully');
     return response.data;
   }
 };

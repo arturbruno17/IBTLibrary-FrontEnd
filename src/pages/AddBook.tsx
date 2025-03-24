@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import Layout from '@/components/Layout';
@@ -279,13 +280,53 @@ const AddBook = () => {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      if (isEditMode) {
-        toast.success(`Book "${formData.title}" updated successfully`);
-      } else {
+      // Create a new book to add to the mockBooks array
+      if (!isEditMode) {
+        const newBook: Book = {
+          id: (mockBooks.length + 1).toString(),
+          title: formData.title,
+          author: formData.author,
+          isbn: formData.isbn,
+          publisher: formData.publisher,
+          publishedYear: formData.publishedYear ? parseInt(formData.publishedYear) : undefined,
+          description: formData.description,
+          cover: formData.cover,
+          quantity: formData.quantity,
+          availableQuantity: formData.quantity,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+        
+        // In a real app, this would call the API
+        // For now, let's just simulate adding to our mock data
+        mockBooks.push(newBook);
+        
         toast.success(`Book "${formData.title}" added successfully`);
+      } else {
+        // Find and update the book
+        const bookIndex = mockBooks.findIndex(b => b.id === id);
+        if (bookIndex >= 0) {
+          mockBooks[bookIndex] = {
+            ...mockBooks[bookIndex],
+            title: formData.title,
+            author: formData.author,
+            isbn: formData.isbn,
+            publisher: formData.publisher,
+            publishedYear: formData.publishedYear ? parseInt(formData.publishedYear) : undefined,
+            description: formData.description,
+            cover: formData.cover,
+            quantity: formData.quantity,
+            updatedAt: new Date().toISOString()
+          };
+          
+          toast.success(`Book "${formData.title}" updated successfully`);
+        }
       }
       
-      navigate('/catalog');
+      // Redirect to catalog page after successful submission
+      setTimeout(() => {
+        navigate('/catalog');
+      }, 1000);
     } catch (error) {
       console.error('Error submitting form:', error);
       toast.error('An error occurred while saving the book');

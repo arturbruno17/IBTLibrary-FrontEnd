@@ -30,11 +30,11 @@ export function useScanner({ onDetected }: ScannerOptions) {
     
     hints.set(DecodeHintType.POSSIBLE_FORMATS, formats);
     
-    // Create and configure the reader
-    const reader = new BrowserMultiFormatReader(hints, {
-      delayBetweenScanAttempts: 100,
-      delayBetweenScanSuccess: 500
-    });
+    // Create and configure the reader - fixed the type issue by passing options correctly
+    const reader = new BrowserMultiFormatReader(hints);
+    // Configure timings separately - this is the proper way to set these options
+    reader.timeBetweenDecodingAttempts = 100;
+    reader.timeBetweenScansMillis = 500;
     
     readerRef.current = reader;
     
@@ -55,7 +55,13 @@ export function useScanner({ onDetected }: ScannerOptions) {
       setCameras(devices);
       
       if (devices.length > 0 && !selectedCamera) {
-        setSelectedCamera(devices[0].deviceId);
+        // Select the back camera by default if it exists
+        const backCamera = devices.find(device => 
+          device.label?.toLowerCase().includes('back') || 
+          device.label?.toLowerCase().includes('traseira')
+        );
+        
+        setSelectedCamera(backCamera?.deviceId || devices[0].deviceId);
       }
     } catch (err) {
       console.error('Error accessing cameras:', err);

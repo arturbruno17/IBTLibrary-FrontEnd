@@ -17,18 +17,17 @@ import AddBook from "./pages/AddBook";
 import Loans from "./pages/Loans";
 import Users from "./pages/Users";
 import NotFound from "./pages/NotFound";
-import { useState } from "react";
 
 const App = () => {
-  // Create a new QueryClient instance within the component function
-  const [queryClient] = useState(() => new QueryClient({
+  // Create a client
+  const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
         refetchOnWindowFocus: false,
         retry: 1,
       },
     },
-  }));
+  });
 
   return (
     <QueryClientProvider client={queryClient}>

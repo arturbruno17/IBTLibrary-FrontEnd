@@ -1,35 +1,16 @@
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
-import { useAuth } from '@/context/AuthContext';
-import { Book as BookType, Role } from '@/types';
+import BookCard from '@/components/BookCard';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { 
-  PlusCircle, 
-  Search, 
-  Filter, 
-  SortAsc, 
-  SortDesc, 
-  Check,
-  Loader2
-} from 'lucide-react';
-import { Link } from 'react-router-dom';
-import BookCard from '@/components/BookCard';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Checkbox } from '@/components/ui/checkbox';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { Search, Plus, BookOpen } from 'lucide-react';
+import { Book } from '@/types';
+import { useAuth } from '@/context/AuthContext';
 
-// Mock data for books
-const mockBooks: BookType[] = [
+// Mock data (will be replaced with real API calls)
+export const mockBooks: Book[] = [
   {
     id: '1',
     title: 'The Great Gatsby',
@@ -144,234 +125,103 @@ const mockBooks: BookType[] = [
   }
 ];
 
-// Filters and sorting
-type SortOption = 'title_asc' | 'title_desc' | 'author_asc' | 'author_desc' | 'year_asc' | 'year_desc';
-type FilterOption = 'available' | 'all';
-
 const Catalog = () => {
-  const { hasRole } = useAuth();
-  const isLibrarianOrAdmin = hasRole(['librarian', 'admin'] as Role[]);
-  const isMobile = useIsMobile();
-  
-  const [books, setBooks] = useState<BookType[]>([]);
-  const [filteredBooks, setFilteredBooks] = useState<BookType[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [books, setBooks] = useState<Book[]>([]);
+  const [filteredBooks, setFilteredBooks] = useState<Book[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortOption, setSortOption] = useState<SortOption>('title_asc');
-  const [filterOption, setFilterOption] = useState<FilterOption>('all');
+  const [loading, setLoading] = useState(true);
+  const { hasRole } = useAuth();
+  const navigate = useNavigate();
   
-  // Simulate loading books from API
+  // Load books
   useEffect(() => {
-    const loadBooks = async () => {
+    const fetchBooks = async () => {
       setLoading(true);
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       setBooks(mockBooks);
       setFilteredBooks(mockBooks);
       setLoading(false);
     };
     
-    loadBooks();
+    fetchBooks();
   }, []);
   
-  // Filter and sort books
-  useEffect(() => {
-    let result = [...books];
-    
-    // Apply search filter
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      result = result.filter(
-        book => 
-          book.title.toLowerCase().includes(query) || 
-          book.author.toLowerCase().includes(query) ||
-          book.isbn.includes(query)
-      );
-    }
-    
-    // Apply availability filter
-    if (filterOption === 'available') {
-      result = result.filter(book => book.availableQuantity > 0);
-    }
-    
-    // Apply sorting
-    result.sort((a, b) => {
-      switch (sortOption) {
-        case 'title_asc':
-          return a.title.localeCompare(b.title);
-        case 'title_desc':
-          return b.title.localeCompare(a.title);
-        case 'author_asc':
-          return a.author.localeCompare(b.author);
-        case 'author_desc':
-          return b.author.localeCompare(a.author);
-        case 'year_asc':
-          return (a.publishedYear || 0) - (b.publishedYear || 0);
-        case 'year_desc':
-          return (b.publishedYear || 0) - (a.publishedYear || 0);
-        default:
-          return 0;
-      }
-    });
-    
-    setFilteredBooks(result);
-  }, [books, searchQuery, sortOption, filterOption]);
-  
-  // Handle search input
+  // Handle search
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
+    const query = e.target.value.toLowerCase();
+    setSearchQuery(query);
+    
+    if (!query.trim()) {
+      setFilteredBooks(books);
+      return;
+    }
+    
+    const results = books.filter(book => 
+      book.title.toLowerCase().includes(query) ||
+      book.author.toLowerCase().includes(query) ||
+      book.isbn.includes(query)
+    );
+    
+    setFilteredBooks(results);
   };
   
   return (
     <Layout>
-      <div className="space-y-6 animate-fade-in">
-        <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
-          <div>
-            <h1>Book Catalog</h1>
-            <p className="text-muted-foreground">
-              Browse our collection of books
-            </p>
-          </div>
+      <div className="animate-fade-in">
+        <div className="flex justify-between items-center mb-6">
+          <h1>Book Catalog</h1>
           
-          {isLibrarianOrAdmin && (
-            <Button asChild>
-              <Link to="/add-book">
-                <PlusCircle className="h-4 w-4 mr-2" />
-                Add New Book
-              </Link>
+          {hasRole(['librarian', 'admin']) && (
+            <Button onClick={() => navigate('/add-book')}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Book
             </Button>
           )}
         </div>
         
-        {/* Search and filters */}
-        <div className="flex flex-col sm:flex-row gap-3">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Search by title, author, or ISBN..."
-              className="pl-9"
-              value={searchQuery}
-              onChange={handleSearch}
-            />
-          </div>
-          
-          <div className="flex gap-2">
-            {/* Availability filter */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline">
-                  <Filter className="h-4 w-4 mr-2" />
-                  {!isMobile && 'Filter'}
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Availability</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuGroup>
-                  <DropdownMenuItem onClick={() => setFilterOption('all')}>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox checked={filterOption === 'all'} />
-                      <span>All Books</span>
-                    </div>
-                    {filterOption === 'all' && <Check className="h-4 w-4 ml-2" />}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setFilterOption('available')}>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox checked={filterOption === 'available'} />
-                      <span>Available Only</span>
-                    </div>
-                    {filterOption === 'available' && <Check className="h-4 w-4 ml-2" />}
-                  </DropdownMenuItem>
-                </DropdownMenuGroup>
-              </DropdownMenuContent>
-            </DropdownMenu>
-            
-            {/* Sort options */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline">
-                  {sortOption.includes('asc') ? (
-                    <SortAsc className="h-4 w-4 mr-2" />
-                  ) : (
-                    <SortDesc className="h-4 w-4 mr-2" />
-                  )}
-                  {!isMobile && 'Sort'}
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Sort by</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuGroup>
-                  <DropdownMenuItem onClick={() => setSortOption('title_asc')}>
-                    Title (A-Z)
-                    {sortOption === 'title_asc' && <Check className="h-4 w-4 ml-2" />}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setSortOption('title_desc')}>
-                    Title (Z-A)
-                    {sortOption === 'title_desc' && <Check className="h-4 w-4 ml-2" />}
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => setSortOption('author_asc')}>
-                    Author (A-Z)
-                    {sortOption === 'author_asc' && <Check className="h-4 w-4 ml-2" />}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setSortOption('author_desc')}>
-                    Author (Z-A)
-                    {sortOption === 'author_desc' && <Check className="h-4 w-4 ml-2" />}
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => setSortOption('year_asc')}>
-                    Year (Oldest first)
-                    {sortOption === 'year_asc' && <Check className="h-4 w-4 ml-2" />}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setSortOption('year_desc')}>
-                    Year (Newest first)
-                    {sortOption === 'year_desc' && <Check className="h-4 w-4 ml-2" />}
-                  </DropdownMenuItem>
-                </DropdownMenuGroup>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+        {/* Search bar */}
+        <div className="relative mb-6">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+          <Input
+            placeholder="Search books by title, author or ISBN..."
+            className="pl-10"
+            value={searchQuery}
+            onChange={handleSearch}
+          />
         </div>
         
-        {/* Results */}
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-            <p className="text-muted-foreground">Loading books...</p>
+          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+            {[...Array(8)].map((_, i) => (
+              <div 
+                key={i} 
+                className="border rounded-lg p-4 h-[320px] animate-pulse flex flex-col items-center"
+              >
+                <div className="w-full h-44 bg-slate-200 rounded-md mb-3" />
+                <div className="w-3/4 h-4 bg-slate-200 rounded mb-2" />
+                <div className="w-1/2 h-3 bg-slate-200 rounded" />
+              </div>
+            ))}
+          </div>
+        ) : filteredBooks.length > 0 ? (
+          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+            {filteredBooks.map(book => (
+              <BookCard key={book.id} book={book} />
+            ))}
           </div>
         ) : (
-          <>
-            {filteredBooks.length > 0 ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 lg:gap-6">
-                {filteredBooks.map(book => (
-                  <BookCard key={book.id} book={book} />
-                ))}
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center py-12 border rounded-lg">
-                <div className="h-16 w-16 bg-muted rounded-full flex items-center justify-center mb-4">
-                  <Search className="h-8 w-8 text-muted-foreground" />
-                </div>
-                <h3 className="text-lg font-medium">No books found</h3>
-                <p className="text-muted-foreground mb-4">Try adjusting your search or filters</p>
-                <Button variant="outline" onClick={() => {
-                  setSearchQuery('');
-                  setFilterOption('all');
-                  setSortOption('title_asc');
-                }}>
-                  Clear all filters
-                </Button>
-              </div>
-            )}
-            
-            {/* Results summary */}
-            {filteredBooks.length > 0 && (
-              <div className="text-sm text-muted-foreground text-center mt-6">
-                Showing {filteredBooks.length} of {books.length} books
-              </div>
-            )}
-          </>
+          <div className="text-center py-12 border rounded-lg">
+            <BookOpen className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
+            <h3 className="text-xl font-medium mb-2">No books found</h3>
+            <p className="text-muted-foreground">
+              {searchQuery
+                ? `No books matching "${searchQuery}"`
+                : "The library catalog is empty"}
+            </p>
+          </div>
         )}
       </div>
     </Layout>
