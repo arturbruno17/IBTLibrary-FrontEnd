@@ -3,7 +3,7 @@ import React, { useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { useScanner } from '@/hooks/useScanner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CameraOff, Camera, RefreshCw, Scan } from 'lucide-react';
+import { CameraOff, Camera, RefreshCw, Scan, Barcode } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 
@@ -25,11 +25,11 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({
     const isbnRegex = /^(?:\d{10}|\d{13})$/;
     
     if (isbnRegex.test(result)) {
-      toast.success(`ISBN detected: ${result}`);
+      toast.success(`ISBN detectado: ${result}`);
       onDetected(result);
       scanner.stopScanning();
     } else {
-      toast.error('Invalid ISBN format. Please try again.');
+      toast.error('Formato de ISBN inválido. Tente novamente.');
     }
   };
   
@@ -54,7 +54,7 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({
         })
         .catch(err => {
           console.error('Camera permission denied:', err);
-          toast.error('Camera access denied. Please check your browser permissions.');
+          toast.error('Acesso à câmera negado. Verifique as permissões do seu navegador.');
         });
     } else {
       console.log('Scanner hidden, stopping...');
@@ -93,7 +93,7 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({
                 className="mt-2 w-full"
               >
                 <RefreshCw className="h-3 w-3 mr-1" />
-                Retry
+                Tentar novamente
               </Button>
             </div>
           )}
@@ -130,14 +130,14 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({
                     onClick={() => scanner.isScanning ? scanner.stopScanning() : scanner.startScanning()}
                   >
                     {scanner.isScanning ? <CameraOff className="h-3 w-3 mr-1" /> : <Camera className="h-3 w-3 mr-1" />}
-                    {scanner.isScanning ? 'Stop' : 'Start'}
+                    {scanner.isScanning ? 'Parar' : 'Iniciar'}
                   </Button>
                 </div>
               </>
             ) : (
               <div className="flex flex-col items-center justify-center h-full p-4 text-white">
-                <Scan className="h-10 w-10 mb-2 opacity-70" />
-                <p className="text-sm text-center">No camera found or permission denied</p>
+                <Barcode className="h-10 w-10 mb-2 opacity-70" />
+                <p className="text-sm text-center">Nenhuma câmera encontrada ou permissão negada</p>
                 <Button 
                   variant="outline" 
                   size="sm" 
@@ -145,7 +145,7 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({
                   className="mt-2"
                 >
                   <RefreshCw className="h-3 w-3 mr-1" />
-                  Retry
+                  Tentar novamente
                 </Button>
               </div>
             )}
@@ -154,18 +154,18 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({
           {/* Camera selector */}
           {scanner.cameras.length > 1 && (
             <div className="flex items-center space-x-2">
-              <span className="text-sm">Camera:</span>
+              <span className="text-sm">Câmera:</span>
               <Select
                 value={scanner.selectedCamera}
                 onValueChange={(value) => scanner.changeCamera(value)}
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select camera" />
+                  <SelectValue placeholder="Selecionar câmera" />
                 </SelectTrigger>
                 <SelectContent>
                   {scanner.cameras.map((camera) => (
                     <SelectItem key={camera.deviceId} value={camera.deviceId}>
-                      {camera.label || `Camera ${camera.deviceId.substring(0, 4)}`}
+                      {camera.label || `Câmera ${camera.deviceId.substring(0, 4)}`}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -174,15 +174,15 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({
           )}
           
           <div className="text-center text-sm text-muted-foreground">
-            <p>Position the barcode inside the viewfinder to scan</p>
+            <p>Posicione o código de barras dentro do visor para digitalizar</p>
           </div>
           
           <div className="flex justify-end space-x-2">
             <Button variant="outline" onClick={onClose}>
-              Cancel
+              Cancelar
             </Button>
             <Button onClick={() => onDetected('9780345391803')}>
-              Use Test ISBN
+              Usar ISBN de Teste
             </Button>
           </div>
         </CardContent>

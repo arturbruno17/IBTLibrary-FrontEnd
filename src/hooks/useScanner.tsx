@@ -16,22 +16,6 @@ export function useScanner({ onDetected }: ScannerOptions) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
-  // Function to stop scanning - declare it before using it
-  const stopScanning = useCallback(() => {
-    console.log('Stopping scanner');
-    if (streamRef.current) {
-      const tracks = streamRef.current.getTracks();
-      tracks.forEach(track => track.stop());
-      streamRef.current = null;
-    }
-    
-    if (readerRef.current) {
-      readerRef.current.reset();
-    }
-    
-    setIsScanning(false);
-  }, []);
-
   // Initialize the barcode reader
   useEffect(() => {
     // Create hints to optimize for ISBN barcodes
@@ -54,16 +38,28 @@ export function useScanner({ onDetected }: ScannerOptions) {
     readerRef.current = reader;
     
     return () => {
-      if (streamRef.current) {
-        const tracks = streamRef.current.getTracks();
-        tracks.forEach(track => track.stop());
-        streamRef.current = null;
-      }
+      stopScanning();
       
       if (readerRef.current) {
         readerRef.current.reset();
       }
     };
+  }, []);
+
+  // Function to stop scanning
+  const stopScanning = useCallback(() => {
+    console.log('Stopping scanner');
+    if (streamRef.current) {
+      const tracks = streamRef.current.getTracks();
+      tracks.forEach(track => track.stop());
+      streamRef.current = null;
+    }
+    
+    if (readerRef.current) {
+      readerRef.current.reset();
+    }
+    
+    setIsScanning(false);
   }, []);
 
   // Get available cameras
@@ -139,7 +135,8 @@ export function useScanner({ onDetected }: ScannerOptions) {
       
       // Start decoding from the selected camera
       try {
-        const stream = await readerRef.current.decodeFromVideoDevice(
+        // Corrigindo o problema de tipagem aqui
+        const promise = readerRef.current.decodeFromVideoDevice(
           selectedCamera,
           'video-preview',
           (result, error) => {
@@ -155,8 +152,17 @@ export function useScanner({ onDetected }: ScannerOptions) {
           }
         );
         
-        // Set the stream reference if we got one
-        streamRef.current = stream;
+        // promise não é um MediaStream, mas precisa ser armazenado para ser interrompido depois
+        // Armazenar o stream real quando disponível
+        if (promise) {
+          // A biblioteca não retorna o stream diretamente, vamos pegá-lo manualmente
+          setTimeout(() => {
+            const videoElement = document.getElementById('video-preview') as HTMLVideoElement;
+            if (videoElement && videoElement.srcObject instanceof MediaStream) {
+              streamRef.current = videoElement.srcObject;
+            }
+          }, 500);
+        }
       } catch (scanErr) {
         console.error('Error in decoding process:', scanErr);
         setError('Error initializing camera scanner.');

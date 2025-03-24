@@ -1,28 +1,12 @@
 
-// Change Role from a type to an enum so it can be used as a value
+// Enumerations
 export enum Role {
-  READER = 'reader',
-  LIBRARIAN = 'librarian',
-  ADMIN = 'admin'
+  READER = "reader",
+  LIBRARIAN = "librarian",
+  ADMIN = "admin"
 }
 
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: Role;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface AuthState {
-  user: User | null;
-  token: string | null;
-  isAuthenticated: boolean;
-  loading: boolean;
-  error: string | null;
-}
-
+// Book interfaces
 export interface Book {
   id: string;
   title: string;
@@ -38,39 +22,48 @@ export interface Book {
   updatedAt: string;
 }
 
+// User interfaces
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: Role;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Loan interfaces
+export interface Loan {
+  id: string;
+  book: Book;
+  user: User;
+  dueDate: string;
+  returnDate?: string;
+  status: 'active' | 'returned' | 'overdue';
+  createdAt: string;
+  updatedAt: string;
+}
+
+// OpenLibrary API types
+export interface OpenLibraryAuthor {
+  key: string;
+  name: string;
+}
+
 export interface OpenLibraryBook {
+  key?: string;
   title: string;
-  authors?: { name: string }[];
-  publishers?: string[];
+  author_name?: string[];
+  authors?: OpenLibraryAuthor[];
+  isbn?: string[];
+  publisher?: string[];
   publish_date?: string;
   cover_i?: number;
-  isbn?: string[];
   description?: string;
-  number_of_pages?: number;
 }
 
 export interface OpenLibraryResponse {
-  docs: OpenLibraryBook[];
   numFound: number;
-}
-
-export enum LoanStatus {
-  ACTIVE = 'active',
-  RETURNED = 'returned',
-  EXTENDED = 'extended',
-  OVERDUE = 'overdue'
-}
-
-export interface Loan {
-  id: string;
-  bookId: string;
-  book: Book;
-  userId: string;
-  user: User;
-  loanDate: string;
-  dueDate: string;
-  returnDate?: string;
-  status: LoanStatus;
-  createdAt: string;
-  updatedAt: string;
+  start: number;
+  docs: OpenLibraryBook[];
 }
