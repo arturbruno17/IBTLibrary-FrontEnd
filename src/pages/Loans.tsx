@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import { useAuth } from '@/context/AuthContext';
@@ -72,7 +73,7 @@ const mockLoans: Loan[] = [
       id: '1',
       name: 'John Smith',
       email: 'john@example.com',
-      role: 'reader',
+      role: Role.READER,
       createdAt: '2023-01-01T00:00:00Z',
       updatedAt: '2023-01-01T00:00:00Z'
     },
@@ -104,7 +105,7 @@ const mockLoans: Loan[] = [
       id: '1',
       name: 'John Smith',
       email: 'john@example.com',
-      role: 'reader',
+      role: Role.READER,
       createdAt: '2023-01-01T00:00:00Z',
       updatedAt: '2023-01-01T00:00:00Z'
     },
@@ -136,7 +137,7 @@ const mockLoans: Loan[] = [
       id: '2',
       name: 'Maria Johnson',
       email: 'maria@example.com',
-      role: 'reader',
+      role: Role.READER,
       createdAt: '2023-01-02T00:00:00Z',
       updatedAt: '2023-01-02T00:00:00Z'
     },
@@ -168,7 +169,7 @@ const mockLoans: Loan[] = [
       id: '3',
       name: 'David Brown',
       email: 'david@example.com',
-      role: 'reader',
+      role: Role.READER,
       createdAt: '2023-01-03T00:00:00Z',
       updatedAt: '2023-01-03T00:00:00Z'
     },
@@ -201,7 +202,7 @@ const mockLoans: Loan[] = [
       id: '1',
       name: 'John Smith',
       email: 'john@example.com',
-      role: 'reader',
+      role: Role.READER,
       createdAt: '2023-01-01T00:00:00Z',
       updatedAt: '2023-01-01T00:00:00Z'
     },
@@ -217,7 +218,7 @@ type LoanFilter = 'all' | 'active' | 'returned' | 'overdue' | 'extended';
 
 const Loans = () => {
   const { user, hasRole } = useAuth();
-  const isLibrarianOrAdmin = hasRole(['librarian', 'admin']);
+  const isLibrarianOrAdmin = hasRole([Role.LIBRARIAN, Role.ADMIN]);
   
   const [loans, setLoans] = useState<Loan[]>([]);
   const [filteredLoans, setFilteredLoans] = useState<Loan[]>([]);
@@ -253,13 +254,20 @@ const Loans = () => {
     loadLoans();
   }, [isLibrarianOrAdmin, user?.id]);
   
+  // Update available books and users when the loan dialog opens
   useEffect(() => {
-    const books = mockBooks.filter(book => book.availableQuantity > 0);
-    setAvailableBooks(books);
-    
-    setAvailableUsers(mockUsers);
-    
-    console.log('Available books for loans:', books);
+    if (showLoanDialog) {
+      // Only show books with available copies
+      const books = mockBooks.filter(book => book.availableQuantity > 0);
+      setAvailableBooks(books);
+      
+      // Only show reader users
+      const readers = mockUsers.filter(user => user.role === Role.READER);
+      setAvailableUsers(readers);
+      
+      console.log('Available books for loans:', books);
+      console.log('Available users for loans:', readers);
+    }
   }, [showLoanDialog]);
   
   useEffect(() => {
@@ -296,8 +304,9 @@ const Loans = () => {
     const reader = mockUsers.find(u => u.id === selectedUser);
     
     if (book && reader) {
+      // Create a single loan
       const newLoan: Loan = {
-        id: `new-${Date.now()}`,
+        id: `loan-${Date.now()}`,
         bookId: book.id,
         book,
         userId: reader.id,
@@ -309,6 +318,7 @@ const Loans = () => {
         updatedAt: new Date().toISOString()
       };
       
+      // Update book availability
       const bookIndex = mockBooks.findIndex(b => b.id === book.id);
       if (bookIndex >= 0) {
         mockBooks[bookIndex] = {
@@ -317,8 +327,9 @@ const Loans = () => {
         };
       }
       
+      // Update the loans array in memory
       mockLoans.unshift(newLoan);
-      setLoans([newLoan, ...loans]);
+      setLoans(prevLoans => [newLoan, ...prevLoans]);
       
       toast.success(`Book "${book.title}" loaned to ${reader.name}`);
       setShowLoanDialog(false);

@@ -1,3 +1,4 @@
+
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { BrowserMultiFormatReader, BarcodeFormat, DecodeHintType } from '@zxing/library';
 
@@ -155,9 +156,7 @@ export function useScanner({ onDetected }: ScannerOptions) {
         );
         
         // Set the stream reference if we got one
-        if (stream) {
-          streamRef.current = stream;
-        }
+        streamRef.current = stream;
       } catch (scanErr) {
         console.error('Error in decoding process:', scanErr);
         setError('Error initializing camera scanner.');

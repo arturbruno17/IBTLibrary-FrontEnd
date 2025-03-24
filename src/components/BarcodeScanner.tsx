@@ -40,6 +40,7 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({
   // Initialize and force camera permissions when component becomes visible
   useEffect(() => {
     if (isVisible) {
+      console.log('Scanner visible, initializing...');
       // Request camera permission explicitly
       navigator.mediaDevices.getUserMedia({ video: true })
         .then(() => {
@@ -56,6 +57,7 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({
           toast.error('Camera access denied. Please check your browser permissions.');
         });
     } else {
+      console.log('Scanner hidden, stopping...');
       scanner.stopScanning();
     }
     

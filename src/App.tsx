@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/context/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { Role } from "@/types";
 
 // Pages
 import Login from "./pages/Login";
@@ -87,7 +88,7 @@ const App = () => {
               <Route 
                 path="/add-book" 
                 element={
-                  <ProtectedRoute allowedRoles={['librarian', 'admin']}>
+                  <ProtectedRoute allowedRoles={[Role.LIBRARIAN, Role.ADMIN]}>
                     <AddBook />
                   </ProtectedRoute>
                 } 
@@ -95,7 +96,7 @@ const App = () => {
               <Route 
                 path="/edit-book/:id" 
                 element={
-                  <ProtectedRoute allowedRoles={['librarian', 'admin']}>
+                  <ProtectedRoute allowedRoles={[Role.LIBRARIAN, Role.ADMIN]}>
                     <AddBook />
                   </ProtectedRoute>
                 } 
@@ -105,7 +106,7 @@ const App = () => {
               <Route 
                 path="/users" 
                 element={
-                  <ProtectedRoute allowedRoles={['admin']}>
+                  <ProtectedRoute allowedRoles={[Role.ADMIN]}>
                     <Users />
                   </ProtectedRoute>
                 } 

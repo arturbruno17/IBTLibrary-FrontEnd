@@ -1,7 +1,6 @@
 
 import { Book, User, Role } from '@/types';
 
-// Make mock data available globally
 export const mockBooks: Book[] = [
   {
     id: '1',
@@ -72,52 +71,9 @@ export const mockBooks: Book[] = [
     availableQuantity: 1,
     createdAt: '2023-01-05T00:00:00Z',
     updatedAt: '2023-01-05T00:00:00Z'
-  },
-  {
-    id: '6',
-    title: 'The Hobbit',
-    author: 'J.R.R. Tolkien',
-    isbn: '9780547928227',
-    publisher: 'Houghton Mifflin Harcourt',
-    publishedYear: 1937,
-    description: 'A fantasy novel about a hobbit who embarks on an adventure.',
-    cover: 'https://covers.openlibrary.org/b/id/8323742-M.jpg',
-    quantity: 4,
-    availableQuantity: 4,
-    createdAt: '2023-01-06T00:00:00Z',
-    updatedAt: '2023-01-06T00:00:00Z'
-  },
-  {
-    id: '7',
-    title: 'Harry Potter and the Philosopher\'s Stone',
-    author: 'J.K. Rowling',
-    isbn: '9780747532743',
-    publisher: 'Bloomsbury',
-    publishedYear: 1997,
-    description: 'The first novel in the Harry Potter series, featuring a young wizard\'s adventures at Hogwarts School of Witchcraft and Wizardry.',
-    cover: 'https://covers.openlibrary.org/b/id/10110415-M.jpg',
-    quantity: 6,
-    availableQuantity: 3,
-    createdAt: '2023-01-07T00:00:00Z',
-    updatedAt: '2023-01-07T00:00:00Z'
-  },
-  {
-    id: '8',
-    title: 'The Lord of the Rings',
-    author: 'J.R.R. Tolkien',
-    isbn: '9780618640157',
-    publisher: 'Houghton Mifflin Harcourt',
-    publishedYear: 1954,
-    description: 'An epic fantasy novel about a quest to destroy a powerful ring.',
-    cover: 'https://covers.openlibrary.org/b/id/8405716-M.jpg',
-    quantity: 3,
-    availableQuantity: 1,
-    createdAt: '2023-01-08T00:00:00Z',
-    updatedAt: '2023-01-08T00:00:00Z'
   }
 ];
 
-// Add mock users data
 export const mockUsers: User[] = [
   {
     id: '1',
@@ -145,17 +101,17 @@ export const mockUsers: User[] = [
   },
   {
     id: '4',
-    name: 'Sarah Lee',
-    email: 'sarah@example.com',
-    role: Role.LIBRARIAN,
+    name: 'Library Admin',
+    email: 'admin@library.com',
+    role: Role.ADMIN,
     createdAt: '2023-01-04T00:00:00Z',
     updatedAt: '2023-01-04T00:00:00Z'
   },
   {
     id: '5',
-    name: 'Admin User',
-    email: 'admin@example.com',
-    role: Role.ADMIN,
+    name: 'Librarian Staff',
+    email: 'staff@library.com',
+    role: Role.LIBRARIAN,
     createdAt: '2023-01-05T00:00:00Z',
     updatedAt: '2023-01-05T00:00:00Z'
   }
