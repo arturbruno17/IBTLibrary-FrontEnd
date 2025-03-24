@@ -16,6 +16,22 @@ export function useScanner({ onDetected }: ScannerOptions) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
+  // Function to stop scanning - declare it before using it
+  const stopScanning = useCallback(() => {
+    console.log('Stopping scanner');
+    if (streamRef.current) {
+      const tracks = streamRef.current.getTracks();
+      tracks.forEach(track => track.stop());
+      streamRef.current = null;
+    }
+    
+    if (readerRef.current) {
+      readerRef.current.reset();
+    }
+    
+    setIsScanning(false);
+  }, []);
+
   // Initialize the barcode reader
   useEffect(() => {
     // Create hints to optimize for ISBN barcodes
@@ -121,7 +137,8 @@ export function useScanner({ onDetected }: ScannerOptions) {
       // Reset the reader before starting
       readerRef.current.reset();
       
-      await readerRef.current.decodeFromVideoDevice(
+      // Store the stream reference returned by decodeFromVideoDevice
+      const stream = await readerRef.current.decodeFromVideoDevice(
         selectedCamera,
         'video-preview',
         (result, error) => {
@@ -135,31 +152,18 @@ export function useScanner({ onDetected }: ScannerOptions) {
             // Ignore normal operation errors
           }
         }
-      ).then(stream => {
+      );
+      
+      // Set the stream reference
+      if (stream) {
         streamRef.current = stream;
-      });
+      }
     } catch (err) {
       console.error('Error starting scanner:', err);
       setError('Failed to start the barcode scanner.');
       setIsScanning(false);
     }
   }, [cameras, getCameras, onDetected, selectedCamera, isScanning, stopScanning]);
-
-  // Stop scanning
-  const stopScanning = useCallback(() => {
-    console.log('Stopping scanner');
-    if (streamRef.current) {
-      const tracks = streamRef.current.getTracks();
-      tracks.forEach(track => track.stop());
-      streamRef.current = null;
-    }
-    
-    if (readerRef.current) {
-      readerRef.current.reset();
-    }
-    
-    setIsScanning(false);
-  }, []);
 
   // Change selected camera
   const changeCamera = useCallback((deviceId: string) => {

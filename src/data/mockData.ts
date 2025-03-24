@@ -1,5 +1,5 @@
 
-import { Book } from '@/types';
+import { Book, User, Role } from '@/types';
 
 // Make mock data available globally
 export const mockBooks: Book[] = [
@@ -114,5 +114,49 @@ export const mockBooks: Book[] = [
     availableQuantity: 1,
     createdAt: '2023-01-08T00:00:00Z',
     updatedAt: '2023-01-08T00:00:00Z'
+  }
+];
+
+// Add mock users data
+export const mockUsers: User[] = [
+  {
+    id: '1',
+    name: 'John Smith',
+    email: 'john@example.com',
+    role: Role.READER,
+    createdAt: '2023-01-01T00:00:00Z',
+    updatedAt: '2023-01-01T00:00:00Z'
+  },
+  {
+    id: '2',
+    name: 'Maria Johnson',
+    email: 'maria@example.com',
+    role: Role.READER,
+    createdAt: '2023-01-02T00:00:00Z',
+    updatedAt: '2023-01-02T00:00:00Z'
+  },
+  {
+    id: '3',
+    name: 'David Brown',
+    email: 'david@example.com',
+    role: Role.READER,
+    createdAt: '2023-01-03T00:00:00Z',
+    updatedAt: '2023-01-03T00:00:00Z'
+  },
+  {
+    id: '4',
+    name: 'Sarah Lee',
+    email: 'sarah@example.com',
+    role: Role.LIBRARIAN,
+    createdAt: '2023-01-04T00:00:00Z',
+    updatedAt: '2023-01-04T00:00:00Z'
+  },
+  {
+    id: '5',
+    name: 'Admin User',
+    email: 'admin@example.com',
+    role: Role.ADMIN,
+    createdAt: '2023-01-05T00:00:00Z',
+    updatedAt: '2023-01-05T00:00:00Z'
   }
 ];
