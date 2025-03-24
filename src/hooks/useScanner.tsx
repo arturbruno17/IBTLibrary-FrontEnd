@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { BrowserMultiFormatReader, BarcodeFormat, DecodeHintType } from '@zxing/library';
 
@@ -137,26 +136,32 @@ export function useScanner({ onDetected }: ScannerOptions) {
       // Reset the reader before starting
       readerRef.current.reset();
       
-      // Store the stream reference returned by decodeFromVideoDevice
-      const stream = await readerRef.current.decodeFromVideoDevice(
-        selectedCamera,
-        'video-preview',
-        (result, error) => {
-          if (result) {
-            console.log('Code detected:', result.getText());
-            const text = result.getText();
-            onDetected(text);
+      // Start decoding from the selected camera
+      try {
+        const stream = await readerRef.current.decodeFromVideoDevice(
+          selectedCamera,
+          'video-preview',
+          (result, error) => {
+            if (result) {
+              console.log('Code detected:', result.getText());
+              const text = result.getText();
+              onDetected(text);
+            }
+            
+            if (error && !(error instanceof Error)) {
+              // Ignore normal operation errors
+            }
           }
-          
-          if (error && !(error instanceof Error)) {
-            // Ignore normal operation errors
-          }
+        );
+        
+        // Set the stream reference if we got one
+        if (stream) {
+          streamRef.current = stream;
         }
-      );
-      
-      // Set the stream reference
-      if (stream) {
-        streamRef.current = stream;
+      } catch (scanErr) {
+        console.error('Error in decoding process:', scanErr);
+        setError('Error initializing camera scanner.');
+        setIsScanning(false);
       }
     } catch (err) {
       console.error('Error starting scanner:', err);

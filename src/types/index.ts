@@ -1,5 +1,10 @@
 
-export type Role = 'reader' | 'librarian' | 'admin';
+// Change Role from a type to an enum so it can be used as a value
+export enum Role {
+  READER = 'reader',
+  LIBRARIAN = 'librarian',
+  ADMIN = 'admin'
+}
 
 export interface User {
   id: string;

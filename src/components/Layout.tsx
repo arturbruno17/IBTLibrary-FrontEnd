@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Role } from '@/types';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -32,25 +33,25 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       label: 'Dashboard',
       icon: <Home className="h-5 w-5" />,
       href: '/dashboard',
-      roles: ['reader', 'librarian', 'admin'],
+      roles: [Role.READER, Role.LIBRARIAN, Role.ADMIN],
     },
     {
       label: 'Catalog',
       icon: <BookOpen className="h-5 w-5" />,
       href: '/catalog',
-      roles: ['reader', 'librarian', 'admin'],
+      roles: [Role.READER, Role.LIBRARIAN, Role.ADMIN],
     },
     {
       label: 'Loans',
       icon: <BookCopy className="h-5 w-5" />,
       href: '/loans',
-      roles: ['reader', 'librarian', 'admin'],
+      roles: [Role.READER, Role.LIBRARIAN, Role.ADMIN],
     },
     {
       label: 'Users',
       icon: <Users className="h-5 w-5" />,
       href: '/users',
-      roles: ['admin'],
+      roles: [Role.ADMIN],
     },
   ];
 
