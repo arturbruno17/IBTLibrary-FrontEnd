@@ -47,8 +47,8 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { Link } from 'react-router-dom';
 import { Label } from '@/components/ui/label';
+import { mockBooks, mockUsers } from '@/data/mockData';
 
-// Mock data for loans
 const mockLoans: Loan[] = [
   {
     id: '1',
@@ -213,114 +213,36 @@ const mockLoans: Loan[] = [
   }
 ];
 
-// Mock data for users (librarian view)
-const mockUsers: User[] = [
-  {
-    id: '1',
-    name: 'John Smith',
-    email: 'john@example.com',
-    role: 'reader',
-    createdAt: '2023-01-01T00:00:00Z',
-    updatedAt: '2023-01-01T00:00:00Z'
-  },
-  {
-    id: '2',
-    name: 'Maria Johnson',
-    email: 'maria@example.com',
-    role: 'reader',
-    createdAt: '2023-01-02T00:00:00Z',
-    updatedAt: '2023-01-02T00:00:00Z'
-  },
-  {
-    id: '3',
-    name: 'David Brown',
-    email: 'david@example.com',
-    role: 'reader',
-    createdAt: '2023-01-03T00:00:00Z',
-    updatedAt: '2023-01-03T00:00:00Z'
-  }
-];
-
-// Mock books for librarian loan creation
-const mockAvailableBooks: Book[] = [
-  {
-    id: '1',
-    title: 'The Great Gatsby',
-    author: 'F. Scott Fitzgerald',
-    isbn: '9780743273565',
-    publisher: 'Scribner',
-    publishedYear: 1925,
-    description: 'A story of wealth, love, and tragedy set in the Roaring Twenties.',
-    cover: 'https://covers.openlibrary.org/b/id/8432047-M.jpg',
-    quantity: 3,
-    availableQuantity: 1,
-    createdAt: '2023-01-01T00:00:00Z',
-    updatedAt: '2023-01-01T00:00:00Z'
-  },
-  {
-    id: '2',
-    title: 'To Kill a Mockingbird',
-    author: 'Harper Lee',
-    isbn: '9780061120084',
-    publisher: 'HarperCollins',
-    publishedYear: 1960,
-    description: 'A novel about racial injustice and moral growth in the American South.',
-    cover: 'https://covers.openlibrary.org/b/id/8810494-M.jpg',
-    quantity: 5,
-    availableQuantity: 3,
-    createdAt: '2023-01-02T00:00:00Z',
-    updatedAt: '2023-01-02T00:00:00Z'
-  },
-  {
-    id: '6',
-    title: 'The Hobbit',
-    author: 'J.R.R. Tolkien',
-    isbn: '9780547928227',
-    publisher: 'Houghton Mifflin Harcourt',
-    publishedYear: 1937,
-    description: 'A fantasy novel about a hobbit who embarks on an adventure.',
-    cover: 'https://covers.openlibrary.org/b/id/8323742-M.jpg',
-    quantity: 4,
-    availableQuantity: 4,
-    createdAt: '2023-01-06T00:00:00Z',
-    updatedAt: '2023-01-06T00:00:00Z'
-  }
-];
-
 type LoanFilter = 'all' | 'active' | 'returned' | 'overdue' | 'extended';
 
 const Loans = () => {
   const { user, hasRole } = useAuth();
-  const isLibrarianOrAdmin = hasRole(['librarian', 'admin'] as Role[]);
+  const isLibrarianOrAdmin = hasRole(['librarian', 'admin']);
   
   const [loans, setLoans] = useState<Loan[]>([]);
   const [filteredLoans, setFilteredLoans] = useState<Loan[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [filter, setFilter] = useState<LoanFilter>('all');
+  const [availableBooks, setAvailableBooks] = useState<Book[]>([]);
+  const [availableUsers, setAvailableUsers] = useState<User[]>([]);
   
-  // New loan dialog state
   const [showLoanDialog, setShowLoanDialog] = useState(false);
   const [selectedBook, setSelectedBook] = useState<string>('');
   const [selectedUser, setSelectedUser] = useState<string>('');
   const [creatingLoan, setCreatingLoan] = useState(false);
   
-  // State for loan actions
   const [processingLoanId, setProcessingLoanId] = useState<string | null>(null);
   
-  // Load loans data
   useEffect(() => {
     const loadLoans = async () => {
       setLoading(true);
       
-      // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 800));
       
       if (isLibrarianOrAdmin) {
-        // Librarians see all loans
         setLoans(mockLoans);
       } else {
-        // Readers only see their own loans
         const userLoans = mockLoans.filter(loan => loan.userId === user?.id);
         setLoans(userLoans);
       }
@@ -331,16 +253,22 @@ const Loans = () => {
     loadLoans();
   }, [isLibrarianOrAdmin, user?.id]);
   
-  // Apply filters and search
+  useEffect(() => {
+    const books = mockBooks.filter(book => book.availableQuantity > 0);
+    setAvailableBooks(books);
+    
+    setAvailableUsers(mockUsers);
+    
+    console.log('Available books for loans:', books);
+  }, [showLoanDialog]);
+  
   useEffect(() => {
     let result = [...loans];
     
-    // Apply status filter
     if (filter !== 'all') {
       result = result.filter(loan => loan.status === filter);
     }
     
-    // Apply search
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       result = result.filter(
@@ -354,7 +282,6 @@ const Loans = () => {
     setFilteredLoans(result);
   }, [loans, filter, searchQuery]);
   
-  // Handle creating a new loan
   const handleCreateLoan = async () => {
     if (!selectedBook || !selectedUser) {
       toast.error('Please select both a book and a user');
@@ -363,14 +290,12 @@ const Loans = () => {
     
     setCreatingLoan(true);
     
-    // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1000));
     
-    const book = mockAvailableBooks.find(b => b.id === selectedBook);
+    const book = mockBooks.find(b => b.id === selectedBook);
     const reader = mockUsers.find(u => u.id === selectedUser);
     
     if (book && reader) {
-      // Simulate creating a new loan
       const newLoan: Loan = {
         id: `new-${Date.now()}`,
         bookId: book.id,
@@ -378,13 +303,22 @@ const Loans = () => {
         userId: reader.id,
         user: reader,
         loanDate: new Date().toISOString(),
-        dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(), // 14 days from now
+        dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
         status: LoanStatus.ACTIVE,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
       
-      setLoans(prev => [newLoan, ...prev]);
+      const bookIndex = mockBooks.findIndex(b => b.id === book.id);
+      if (bookIndex >= 0) {
+        mockBooks[bookIndex] = {
+          ...mockBooks[bookIndex],
+          availableQuantity: mockBooks[bookIndex].availableQuantity - 1
+        };
+      }
+      
+      mockLoans.unshift(newLoan);
+      setLoans([newLoan, ...loans]);
       
       toast.success(`Book "${book.title}" loaned to ${reader.name}`);
       setShowLoanDialog(false);
@@ -397,56 +331,69 @@ const Loans = () => {
     setCreatingLoan(false);
   };
   
-  // Handle returning a book
   const handleReturnBook = async (loanId: string) => {
     setProcessingLoanId(loanId);
     
-    // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 800));
     
-    // Update the loan in the state
-    setLoans(prev => 
-      prev.map(loan => 
-        loan.id === loanId
-          ? {
-              ...loan,
-              status: LoanStatus.RETURNED,
-              returnDate: new Date().toISOString(),
-              updatedAt: new Date().toISOString()
-            }
-          : loan
-      )
-    );
-    
-    const loan = loans.find(l => l.id === loanId);
-    if (loan) {
+    const loanIndex = loans.findIndex(l => l.id === loanId);
+    if (loanIndex >= 0) {
+      const loan = loans[loanIndex];
+      
+      const updatedLoan = {
+        ...loan,
+        status: LoanStatus.RETURNED,
+        returnDate: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      
+      const bookIndex = mockBooks.findIndex(b => b.id === loan.bookId);
+      if (bookIndex >= 0) {
+        mockBooks[bookIndex] = {
+          ...mockBooks[bookIndex],
+          availableQuantity: mockBooks[bookIndex].availableQuantity + 1
+        };
+      }
+      
+      const updatedLoans = [...loans];
+      updatedLoans[loanIndex] = updatedLoan;
+      setLoans(updatedLoans);
+      
+      const mockLoanIndex = mockLoans.findIndex(l => l.id === loanId);
+      if (mockLoanIndex >= 0) {
+        mockLoans[mockLoanIndex] = updatedLoan;
+      }
+      
       toast.success(`Book "${loan.book.title}" has been returned`);
     }
     
     setProcessingLoanId(null);
   };
   
-  // Handle extending a loan
   const handleExtendLoan = async (loanId: string) => {
     setProcessingLoanId(loanId);
     
-    // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 800));
     
-    // Update the loan in the state
     setLoans(prev => 
       prev.map(loan => {
         if (loan.id === loanId) {
-          // Add 14 days to the due date
           const currentDueDate = new Date(loan.dueDate);
           const newDueDate = new Date(currentDueDate.getTime() + 14 * 24 * 60 * 60 * 1000);
           
-          return {
+          const updatedLoan = {
             ...loan,
             status: LoanStatus.EXTENDED,
             dueDate: newDueDate.toISOString(),
             updatedAt: new Date().toISOString()
           };
+          
+          const mockLoanIndex = mockLoans.findIndex(l => l.id === loanId);
+          if (mockLoanIndex >= 0) {
+            mockLoans[mockLoanIndex] = updatedLoan;
+          }
+          
+          return updatedLoan;
         }
         return loan;
       })
@@ -460,18 +407,15 @@ const Loans = () => {
     setProcessingLoanId(null);
   };
   
-  // Format date for display
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString();
   };
   
-  // Calculate if a loan is overdue based on due date
   const isOverdue = (dueDate: string) => {
     return new Date(dueDate) < new Date() && new Date(dueDate).getTime() > 0;
   };
   
-  // Get status badge for a loan
   const getLoanStatusBadge = (loan: Loan) => {
     const isDue = isOverdue(loan.dueDate);
     
@@ -531,7 +475,6 @@ const Loans = () => {
           )}
         </div>
         
-        {/* Search and filters */}
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -590,7 +533,6 @@ const Loans = () => {
           </DropdownMenu>
         </div>
         
-        {/* Loans list */}
         {loading ? (
           <div className="flex flex-col items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
@@ -784,7 +726,6 @@ const Loans = () => {
         )}
       </div>
       
-      {/* Dialog for creating new loan */}
       <Dialog open={showLoanDialog} onOpenChange={setShowLoanDialog}>
         <DialogContent>
           <DialogHeader>
@@ -802,11 +743,15 @@ const Loans = () => {
                   <SelectValue placeholder="Select a book" />
                 </SelectTrigger>
                 <SelectContent>
-                  {mockAvailableBooks.map((book) => (
-                    <SelectItem key={book.id} value={book.id}>
-                      {book.title} by {book.author}
-                    </SelectItem>
-                  ))}
+                  {availableBooks.length > 0 ? (
+                    availableBooks.map((book) => (
+                      <SelectItem key={book.id} value={book.id}>
+                        {book.title} by {book.author} ({book.availableQuantity} available)
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="none" disabled>No books available</SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -818,7 +763,7 @@ const Loans = () => {
                   <SelectValue placeholder="Select a user" />
                 </SelectTrigger>
                 <SelectContent>
-                  {mockUsers.map((user) => (
+                  {availableUsers.map((user) => (
                     <SelectItem key={user.id} value={user.id}>
                       {user.name} ({user.email})
                     </SelectItem>
