@@ -5,7 +5,7 @@ import { Role } from '@/types';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  allowedRoles?: Role | Role[];
+  allowedRoles?: Role[] | Role;
 }
 
 const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {

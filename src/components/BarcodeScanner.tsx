@@ -3,7 +3,7 @@ import React, { useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { useScanner } from '@/hooks/useScanner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CameraOff, Camera, RefreshCw, Scan, BookOpen } from 'lucide-react';
+import { CameraOff, Camera, RefreshCw, Scan } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 

@@ -19,7 +19,7 @@ import Users from "./pages/Users";
 import NotFound from "./pages/NotFound";
 
 const App = () => {
-  // Create a client
+  // Create a client inside the component to prevent the useEffect error
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {

@@ -30,11 +30,8 @@ export function useScanner({ onDetected }: ScannerOptions) {
     
     hints.set(DecodeHintType.POSSIBLE_FORMATS, formats);
     
-    // Create and configure the reader - fixed the type issue by passing options correctly
+    // Create and configure the reader
     const reader = new BrowserMultiFormatReader(hints);
-    // Configure timings separately - this is the proper way to set these options
-    reader.timeBetweenDecodingAttempts = 100;
-    reader.timeBetweenScansMillis = 500;
     
     readerRef.current = reader;
     
