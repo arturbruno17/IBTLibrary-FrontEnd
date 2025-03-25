@@ -6,7 +6,7 @@ import BookCard from '@/components/BookCard';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, Plus, BookOpen } from 'lucide-react';
-import { Book } from '@/types';
+import { Book, Role } from '@/types';
 import { useAuth } from '@/context/AuthContext';
 import { mockBooks } from '@/data/mockData';
 
@@ -57,12 +57,12 @@ const Catalog = () => {
     <Layout>
       <div className="animate-fade-in">
         <div className="flex justify-between items-center mb-6">
-          <h1>Book Catalog</h1>
+          <h1>Catálogo de Livros</h1>
           
-          {hasRole(['librarian', 'admin']) && (
+          {hasRole([Role.LIBRARIAN, Role.ADMIN]) && (
             <Button onClick={() => navigate('/add-book')}>
               <Plus className="h-4 w-4 mr-2" />
-              Add Book
+              Adicionar Livro
             </Button>
           )}
         </div>
@@ -71,7 +71,7 @@ const Catalog = () => {
         <div className="relative mb-6">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
           <Input
-            placeholder="Search books by title, author or ISBN..."
+            placeholder="Buscar livros por título, autor ou ISBN..."
             className="pl-10"
             value={searchQuery}
             onChange={handleSearch}
@@ -83,9 +83,8 @@ const Catalog = () => {
             {[...Array(8)].map((_, i) => (
               <div 
                 key={i} 
-                className="border rounded-lg p-4 h-[320px] animate-pulse flex flex-col items-center"
+                className="border rounded-lg p-4 h-[160px] animate-pulse flex flex-col"
               >
-                <div className="w-full h-44 bg-slate-200 rounded-md mb-3" />
                 <div className="w-3/4 h-4 bg-slate-200 rounded mb-2" />
                 <div className="w-1/2 h-3 bg-slate-200 rounded" />
               </div>
@@ -100,11 +99,11 @@ const Catalog = () => {
         ) : (
           <div className="text-center py-12 border rounded-lg">
             <BookOpen className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
-            <h3 className="text-xl font-medium mb-2">No books found</h3>
+            <h3 className="text-xl font-medium mb-2">Nenhum livro encontrado</h3>
             <p className="text-muted-foreground">
               {searchQuery
-                ? `No books matching "${searchQuery}"`
-                : "The library catalog is empty"}
+                ? `Nenhum livro corresponde a "${searchQuery}"`
+                : "O catálogo da biblioteca está vazio"}
             </p>
           </div>
         )}

@@ -35,7 +35,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 import {
   Select,
@@ -61,41 +60,41 @@ import {
 const mockUsers: User[] = [
   {
     id: '1',
-    name: 'John Smith',
-    email: 'john@example.com',
-    role: 'reader' as Role,
+    name: 'João Silva',
+    email: 'joao@exemplo.com',
+    role: Role.READER,
     createdAt: '2023-01-01T00:00:00Z',
     updatedAt: '2023-01-01T00:00:00Z'
   },
   {
     id: '2',
-    name: 'Maria Johnson',
-    email: 'maria@example.com',
-    role: 'reader' as Role,
+    name: 'Maria Oliveira',
+    email: 'maria@exemplo.com',
+    role: Role.READER,
     createdAt: '2023-01-02T00:00:00Z',
     updatedAt: '2023-01-02T00:00:00Z'
   },
   {
     id: '3',
-    name: 'David Brown',
-    email: 'david@example.com',
-    role: 'reader' as Role,
+    name: 'David Santos',
+    email: 'david@exemplo.com',
+    role: Role.READER,
     createdAt: '2023-01-03T00:00:00Z',
     updatedAt: '2023-01-03T00:00:00Z'
   },
   {
     id: '4',
-    name: 'Sarah Wilson',
-    email: 'sarah@example.com',
-    role: 'librarian' as Role,
+    name: 'Sara Fernandes',
+    email: 'sara@exemplo.com',
+    role: Role.LIBRARIAN,
     createdAt: '2023-01-04T00:00:00Z',
     updatedAt: '2023-01-04T00:00:00Z'
   },
   {
     id: '5',
-    name: 'Michael Moore',
-    email: 'michael@example.com',
-    role: 'admin' as Role,
+    name: 'Miguel Castro',
+    email: 'miguel@exemplo.com',
+    role: Role.ADMIN,
     createdAt: '2023-01-05T00:00:00Z',
     updatedAt: '2023-01-05T00:00:00Z'
   }
@@ -104,7 +103,7 @@ const mockUsers: User[] = [
 type UserFilter = 'all' | 'reader' | 'librarian' | 'admin';
 
 const Users = () => {
-  const { user } = useAuth();
+  const { user, hasRole } = useAuth();
   
   const [users, setUsers] = useState<User[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
@@ -116,14 +115,14 @@ const Users = () => {
   const [showAddUserDialog, setShowAddUserDialog] = useState(false);
   const [showChangeRoleDialog, setShowChangeRoleDialog] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
-  const [newRole, setNewRole] = useState<Role>('reader');
+  const [newRole, setNewRole] = useState<Role>(Role.READER);
   
   // Form data for new user
   const [newUserData, setNewUserData] = useState({
     name: '',
     email: '',
     password: '',
-    role: 'reader' as Role
+    role: Role.READER
   });
   
   // Action states
@@ -137,15 +136,13 @@ const Users = () => {
       // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 800));
       
-      // Exclude current user from the list
-      const filteredUsers = mockUsers.filter(u => u.id !== user?.id);
-      setUsers(filteredUsers);
+      setUsers(mockUsers);
       
       setLoading(false);
     };
     
     loadUsers();
-  }, [user?.id]);
+  }, []);
   
   // Apply filters and search
   useEffect(() => {
@@ -153,7 +150,12 @@ const Users = () => {
     
     // Apply role filter
     if (filter !== 'all') {
-      result = result.filter(user => user.role === filter);
+      result = result.filter(user => {
+        if (filter === 'reader') return user.role === Role.READER;
+        if (filter === 'librarian') return user.role === Role.LIBRARIAN;
+        if (filter === 'admin') return user.role === Role.ADMIN;
+        return true;
+      });
     }
     
     // Apply search
@@ -174,7 +176,7 @@ const Users = () => {
     const { name, email, password, role } = newUserData;
     
     if (!name || !email || !password) {
-      toast.error('Please fill in all required fields');
+      toast.error('Por favor, preencha todos os campos obrigatórios');
       return;
     }
     
@@ -195,14 +197,14 @@ const Users = () => {
     
     setUsers(prev => [...prev, newUser]);
     
-    toast.success(`User "${name}" added successfully`);
+    toast.success(`Usuário "${name}" adicionado com sucesso`);
     
     // Reset form and close dialog
     setNewUserData({
       name: '',
       email: '',
       password: '',
-      role: 'reader'
+      role: Role.READER
     });
     setShowAddUserDialog(false);
     setIsProcessing(false);
@@ -211,6 +213,12 @@ const Users = () => {
   // Handle changing user role
   const handleChangeRole = async () => {
     if (!selectedUserId || !newRole) {
+      return;
+    }
+    
+    // Check if trying to set an admin role
+    if (newRole === Role.ADMIN) {
+      toast.error('Não é possível definir um usuário como administrador');
       return;
     }
     
@@ -230,7 +238,8 @@ const Users = () => {
     
     const selectedUser = users.find(u => u.id === selectedUserId);
     if (selectedUser) {
-      toast.success(`${selectedUser.name}'s role updated to ${newRole}`);
+      const roleName = newRole === Role.LIBRARIAN ? 'bibliotecário' : 'leitor';
+      toast.success(`Função de ${selectedUser.name} atualizada para ${roleName}`);
     }
     
     setShowChangeRoleDialog(false);
@@ -249,33 +258,38 @@ const Users = () => {
     setUsers(prev => prev.filter(user => user.id !== userId));
     
     if (userToDelete) {
-      toast.success(`User "${userToDelete.name}" deleted successfully`);
+      toast.success(`Usuário "${userToDelete.name}" excluído com sucesso`);
     }
     
     setIsProcessing(false);
   };
   
+  // Check if user can be edited (only admins can edit other users, users can edit themselves)
+  const canEditUser = (userId: string) => {
+    return hasRole(Role.ADMIN) || (user && user.id === userId);
+  };
+  
   // Get role badge for a user
   const getRoleBadge = (role: Role) => {
     switch (role) {
-      case 'admin':
+      case Role.ADMIN:
         return (
           <Badge variant="outline" className="bg-primary/10 text-primary hover:bg-primary/20">
             <Shield className="h-3 w-3 mr-1" />
-            Admin
+            Administrador
           </Badge>
         );
-      case 'librarian':
+      case Role.LIBRARIAN:
         return (
           <Badge variant="outline" className="bg-green-500/10 text-green-700 hover:bg-green-500/20">
             <BookCopy className="h-3 w-3 mr-1" />
-            Librarian
+            Bibliotecário
           </Badge>
         );
       default:
         return (
           <Badge variant="outline" className="bg-blue-500/10 text-blue-700 hover:bg-blue-500/20">
-            Reader
+            Leitor
           </Badge>
         );
     }
@@ -286,16 +300,18 @@ const Users = () => {
       <div className="space-y-6 animate-fade-in">
         <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
           <div>
-            <h1>User Management</h1>
+            <h1>Gerenciamento de Usuários</h1>
             <p className="text-muted-foreground">
-              Manage users and their roles
+              Gerencie usuários e suas funções
             </p>
           </div>
           
-          <Button onClick={() => setShowAddUserDialog(true)}>
-            <UserPlus className="h-4 w-4 mr-2" />
-            Add New User
-          </Button>
+          {hasRole(Role.ADMIN) && (
+            <Button onClick={() => setShowAddUserDialog(true)}>
+              <UserPlus className="h-4 w-4 mr-2" />
+              Adicionar Novo Usuário
+            </Button>
+          )}
         </div>
         
         {/* Search and filters */}
@@ -303,7 +319,7 @@ const Users = () => {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              placeholder="Search users by name or email..."
+              placeholder="Buscar usuários por nome ou email..."
               className="pl-9"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -314,36 +330,36 @@ const Users = () => {
             <DropdownMenuTrigger asChild>
               <Button variant="outline">
                 <Filter className="h-4 w-4 mr-2" />
-                Filter
+                Filtrar
                 <ChevronDown className="h-4 w-4 ml-2" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Filter by Role</DropdownMenuLabel>
+              <DropdownMenuLabel>Filtrar por Função</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuGroup>
                 <DropdownMenuItem onClick={() => setFilter('all')}>
                   <div className="flex items-center space-x-2">
                     <Checkbox checked={filter === 'all'} />
-                    <span>All Users</span>
+                    <span>Todos os Usuários</span>
                   </div>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setFilter('reader')}>
                   <div className="flex items-center space-x-2">
                     <Checkbox checked={filter === 'reader'} />
-                    <span>Readers</span>
+                    <span>Leitores</span>
                   </div>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setFilter('librarian')}>
                   <div className="flex items-center space-x-2">
                     <Checkbox checked={filter === 'librarian'} />
-                    <span>Librarians</span>
+                    <span>Bibliotecários</span>
                   </div>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setFilter('admin')}>
                   <div className="flex items-center space-x-2">
                     <Checkbox checked={filter === 'admin'} />
-                    <span>Admins</span>
+                    <span>Administradores</span>
                   </div>
                 </DropdownMenuItem>
               </DropdownMenuGroup>
@@ -355,7 +371,7 @@ const Users = () => {
         {loading ? (
           <div className="flex flex-col items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-            <p className="text-muted-foreground">Loading users...</p>
+            <p className="text-muted-foreground">Carregando usuários...</p>
           </div>
         ) : (
           <>
@@ -364,95 +380,101 @@ const Users = () => {
                 <table className="w-full">
                   <thead className="bg-muted/50">
                     <tr>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">User</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Usuário</th>
                       <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Email</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Role</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Member Since</th>
-                      <th className="px-4 py-3 text-right text-sm font-medium text-muted-foreground">Actions</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Função</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Membro Desde</th>
+                      <th className="px-4 py-3 text-right text-sm font-medium text-muted-foreground">Ações</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y">
-                    {filteredUsers.map((user) => (
-                      <tr key={user.id} className="hover:bg-muted/30">
+                    {filteredUsers.map((userItem) => (
+                      <tr key={userItem.id} className="hover:bg-muted/30">
                         <td className="px-4 py-3">
                           <div className="flex items-center space-x-2">
                             <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                              {user.name.charAt(0).toUpperCase()}
+                              {userItem.name.charAt(0).toUpperCase()}
                             </div>
-                            <span className="font-medium">{user.name}</span>
+                            <span className="font-medium">{userItem.name}</span>
                           </div>
                         </td>
                         
                         <td className="px-4 py-3 text-sm">
-                          {user.email}
+                          {userItem.email}
                         </td>
                         
                         <td className="px-4 py-3 text-sm">
-                          {getRoleBadge(user.role)}
+                          {getRoleBadge(userItem.role)}
                         </td>
                         
                         <td className="px-4 py-3 text-sm">
-                          {new Date(user.createdAt).toLocaleDateString()}
+                          {new Date(userItem.createdAt).toLocaleDateString()}
                         </td>
                         
                         <td className="px-4 py-3 text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm">
-                                <Settings className="h-4 w-4" />
-                                <span className="sr-only">Actions</span>
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem
-                                onClick={() => {
-                                  setSelectedUserId(user.id);
-                                  setNewRole(user.role);
-                                  setShowChangeRoleDialog(true);
-                                }}
-                              >
-                                <Shield className="h-4 w-4 mr-2" />
-                                Change Role
-                              </DropdownMenuItem>
-                              <DropdownMenuItem>
-                                <BookCopy className="h-4 w-4 mr-2" />
-                                View Loans
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <AlertDialog>
-                                <AlertDialogTrigger asChild>
+                          {canEditUser(userItem.id) && (
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm">
+                                  <Settings className="h-4 w-4" />
+                                  <span className="sr-only">Ações</span>
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                {hasRole(Role.ADMIN) && (
                                   <DropdownMenuItem
-                                    onSelect={(e) => e.preventDefault()}
-                                    className="text-destructive focus:text-destructive"
+                                    onClick={() => {
+                                      setSelectedUserId(userItem.id);
+                                      setNewRole(userItem.role);
+                                      setShowChangeRoleDialog(true);
+                                    }}
                                   >
-                                    <Trash2 className="h-4 w-4 mr-2" />
-                                    Delete User
+                                    <Shield className="h-4 w-4 mr-2" />
+                                    Alterar Função
                                   </DropdownMenuItem>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                  <AlertDialogHeader>
-                                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                      This will permanently delete the user "{user.name}" and all associated data.
-                                      This action cannot be undone.
-                                    </AlertDialogDescription>
-                                  </AlertDialogHeader>
-                                  <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                    <AlertDialogAction
-                                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                      onClick={() => handleDeleteUser(user.id)}
-                                      disabled={isProcessing}
-                                    >
-                                      {isProcessing ? 'Deleting...' : 'Delete'}
-                                    </AlertDialogAction>
-                                  </AlertDialogFooter>
-                                </AlertDialogContent>
-                              </AlertDialog>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                                )}
+                                <DropdownMenuItem>
+                                  <BookCopy className="h-4 w-4 mr-2" />
+                                  Ver Empréstimos
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                {hasRole(Role.ADMIN) && (
+                                  <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                      <DropdownMenuItem
+                                        onSelect={(e) => e.preventDefault()}
+                                        className="text-destructive focus:text-destructive"
+                                      >
+                                        <Trash2 className="h-4 w-4 mr-2" />
+                                        Excluir Usuário
+                                      </DropdownMenuItem>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                      <AlertDialogHeader>
+                                        <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                          Isso excluirá permanentemente o usuário "{userItem.name}" e todos os dados associados.
+                                          Esta ação não pode ser desfeita.
+                                        </AlertDialogDescription>
+                                      </AlertDialogHeader>
+                                      <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                        <AlertDialogAction
+                                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                          onClick={() => handleDeleteUser(userItem.id)}
+                                          disabled={isProcessing}
+                                        >
+                                          {isProcessing ? 'Excluindo...' : 'Excluir'}
+                                        </AlertDialogAction>
+                                      </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                  </AlertDialog>
+                                )}
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          )}
                         </td>
                       </tr>
                     ))}
@@ -464,17 +486,17 @@ const Users = () => {
                 <div className="h-16 w-16 bg-muted rounded-full flex items-center justify-center mb-4">
                   <Search className="h-8 w-8 text-muted-foreground" />
                 </div>
-                <h3 className="text-lg font-medium">No users found</h3>
+                <h3 className="text-lg font-medium">Nenhum usuário encontrado</h3>
                 <p className="text-muted-foreground mb-4">
                   {searchQuery || filter !== 'all'
-                    ? 'Try adjusting your search or filters'
-                    : 'No users have been added yet'}
+                    ? 'Tente ajustar sua busca ou filtros'
+                    : 'Nenhum usuário foi adicionado ainda'}
                 </p>
                 <Button variant="outline" onClick={() => {
                   setSearchQuery('');
                   setFilter('all');
                 }}>
-                  View all users
+                  Ver todos os usuários
                 </Button>
               </div>
             )}
@@ -486,22 +508,22 @@ const Users = () => {
       <Dialog open={showAddUserDialog} onOpenChange={setShowAddUserDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Add New User</DialogTitle>
+            <DialogTitle>Adicionar Novo Usuário</DialogTitle>
             <DialogDescription>
-              Create a new user account with specified role
+              Crie uma nova conta de usuário com função específica
             </DialogDescription>
           </DialogHeader>
           
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <label htmlFor="name" className="text-sm font-medium">
-                Full Name
+                Nome Completo
               </label>
               <Input
                 id="name"
                 value={newUserData.name}
                 onChange={(e) => setNewUserData({...newUserData, name: e.target.value})}
-                placeholder="John Smith"
+                placeholder="João Silva"
                 required
               />
             </div>
@@ -515,14 +537,14 @@ const Users = () => {
                 type="email"
                 value={newUserData.email}
                 onChange={(e) => setNewUserData({...newUserData, email: e.target.value})}
-                placeholder="john.smith@example.com"
+                placeholder="joao.silva@exemplo.com"
                 required
               />
             </div>
             
             <div className="space-y-2">
               <label htmlFor="password" className="text-sm font-medium">
-                Password
+                Senha
               </label>
               <Input
                 id="password"
@@ -536,19 +558,18 @@ const Users = () => {
             
             <div className="space-y-2">
               <label htmlFor="role" className="text-sm font-medium">
-                Role
+                Função
               </label>
               <Select 
                 value={newUserData.role} 
                 onValueChange={(value) => setNewUserData({...newUserData, role: value as Role})}
               >
                 <SelectTrigger id="role">
-                  <SelectValue placeholder="Select a role" />
+                  <SelectValue placeholder="Selecione uma função" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="reader">Reader</SelectItem>
-                  <SelectItem value="librarian">Librarian</SelectItem>
-                  <SelectItem value="admin">Admin</SelectItem>
+                  <SelectItem value={Role.READER}>Leitor</SelectItem>
+                  <SelectItem value={Role.LIBRARIAN}>Bibliotecário</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -560,7 +581,7 @@ const Users = () => {
               onClick={() => setShowAddUserDialog(false)}
               disabled={isProcessing}
             >
-              Cancel
+              Cancelar
             </Button>
             <Button 
               onClick={handleAddUser}
@@ -569,12 +590,12 @@ const Users = () => {
               {isProcessing ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Adding...
+                  Adicionando...
                 </>
               ) : (
                 <>
                   <UserPlus className="h-4 w-4 mr-2" />
-                  Add User
+                  Adicionar Usuário
                 </>
               )}
             </Button>
@@ -586,28 +607,27 @@ const Users = () => {
       <Dialog open={showChangeRoleDialog} onOpenChange={setShowChangeRoleDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Change User Role</DialogTitle>
+            <DialogTitle>Alterar Função do Usuário</DialogTitle>
             <DialogDescription>
-              Update the user's role and permissions
+              Atualizar a função e permissões do usuário
             </DialogDescription>
           </DialogHeader>
           
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <label htmlFor="change-role" className="text-sm font-medium">
-                Role
+                Função
               </label>
               <Select 
                 value={newRole} 
                 onValueChange={(value) => setNewRole(value as Role)}
               >
                 <SelectTrigger id="change-role">
-                  <SelectValue placeholder="Select a role" />
+                  <SelectValue placeholder="Selecione uma função" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="reader">Reader</SelectItem>
-                  <SelectItem value="librarian">Librarian</SelectItem>
-                  <SelectItem value="admin">Admin</SelectItem>
+                  <SelectItem value={Role.READER}>Leitor</SelectItem>
+                  <SelectItem value={Role.LIBRARIAN}>Bibliotecário</SelectItem>
                 </SelectContent>
               </Select>
               
@@ -615,24 +635,16 @@ const Users = () => {
                 <div className="flex items-start space-x-3">
                   <Check className="h-4 w-4 mt-0.5 text-green-600" />
                   <div>
-                    <p className="font-medium">Reader</p>
-                    <p className="text-muted-foreground">Can view the catalog and manage personal loans</p>
+                    <p className="font-medium">Leitor</p>
+                    <p className="text-muted-foreground">Pode visualizar o catálogo e gerenciar empréstimos pessoais</p>
                   </div>
                 </div>
                 
                 <div className="flex items-start space-x-3">
                   <Check className="h-4 w-4 mt-0.5 text-green-600" />
                   <div>
-                    <p className="font-medium">Librarian</p>
-                    <p className="text-muted-foreground">Can manage books and loans for all users</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start space-x-3">
-                  <Check className="h-4 w-4 mt-0.5 text-green-600" />
-                  <div>
-                    <p className="font-medium">Admin</p>
-                    <p className="text-muted-foreground">Can manage all system aspects, including user roles</p>
+                    <p className="font-medium">Bibliotecário</p>
+                    <p className="text-muted-foreground">Pode gerenciar livros e empréstimos para todos os usuários</p>
                   </div>
                 </div>
               </div>
@@ -645,7 +657,7 @@ const Users = () => {
               onClick={() => setShowChangeRoleDialog(false)}
               disabled={isProcessing}
             >
-              Cancel
+              Cancelar
             </Button>
             <Button 
               onClick={handleChangeRole}
@@ -654,12 +666,12 @@ const Users = () => {
               {isProcessing ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Updating...
+                  Atualizando...
                 </>
               ) : (
                 <>
                   <Shield className="h-4 w-4 mr-2" />
-                  Update Role
+                  Atualizar Função
                 </>
               )}
             </Button>

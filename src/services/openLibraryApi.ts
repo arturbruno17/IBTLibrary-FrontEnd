@@ -28,7 +28,7 @@ export const searchByISBN = async (isbn: string): Promise<OpenLibraryBook | null
     
     return null;
   } catch (error) {
-    console.error('Error searching OpenLibrary API:', error);
+    console.error('Erro ao pesquisar API OpenLibrary:', error);
     return null;
   }
 };
@@ -43,9 +43,9 @@ export const getCoverImageUrl = (coverId?: number, size: 'S' | 'M' | 'L' = 'M'):
 export const parseOpenLibraryBook = (book: OpenLibraryBook) => {
   return {
     title: book.title,
-    author: book.authors?.map(author => author.name).join(', ') || 'Unknown',
+    author: book.authors?.map(author => author.name).join(', ') || 'Desconhecido',
     isbn: book.isbn?.[0] || '',
-    publisher: book.publishers?.[0] || '',
+    publisher: book.publisher?.[0] || '',
     publishedYear: book.publish_date ? parseInt(book.publish_date.slice(-4)) : undefined,
     description: book.description || '',
     cover: book.cover_i ? getCoverImageUrl(book.cover_i) : undefined,

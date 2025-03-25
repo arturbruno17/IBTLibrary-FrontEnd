@@ -1,6 +1,6 @@
+
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { AuthState, User, Role } from '@/types';
-import { authAPI } from '@/services/api';
 import { useNavigate } from 'react-router-dom';
 import { toast } from "sonner";
 
@@ -59,7 +59,7 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
         token: null,
         isAuthenticated: false,
         loading: false,
-        error: action.type === 'AUTH_ERROR' ? 'Authentication error' : null
+        error: action.type === 'AUTH_ERROR' ? 'Erro de autenticação' : null
       };
     case 'UPDATE_USER':
       return {
@@ -117,9 +117,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           // In a real app, you would fetch user data from API
           const simulatedUser: User = {
             id: '1',
-            name: 'Demo User',
-            email: 'demo@example.com',
-            role: 'reader',
+            name: 'Usuário Demo',
+            email: 'demo@exemplo.com',
+            role: Role.READER,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString()
           };
@@ -147,10 +147,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       // For demo purposes, we'll simulate a successful login
       const userRole: Role = email.includes('admin') 
-        ? 'admin' 
+        ? Role.ADMIN 
         : email.includes('librarian') 
-          ? 'librarian' 
-          : 'reader';
+          ? Role.LIBRARIAN 
+          : Role.READER;
           
       const simulatedResponse = {
         user: {
@@ -169,12 +169,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         payload: simulatedResponse 
       });
       
-      toast.success(`Welcome back, ${simulatedResponse.user.name}!`);
+      toast.success(`Bem-vindo de volta, ${simulatedResponse.user.name}!`);
       navigate('/dashboard');
     } catch (error) {
       dispatch({ 
         type: 'LOGIN_FAILURE', 
-        payload: 'Invalid credentials' 
+        payload: 'Credenciais inválidas' 
       });
     }
   };
@@ -193,7 +193,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           id: '1',
           name,
           email,
-          role: 'reader' as Role,
+          role: Role.READER,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
         },
@@ -205,12 +205,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         payload: simulatedResponse 
       });
       
-      toast.success('Account created successfully!');
+      toast.success('Conta criada com sucesso!');
       navigate('/dashboard');
     } catch (error) {
       dispatch({ 
         type: 'REGISTER_FAILURE', 
-        payload: 'Registration failed' 
+        payload: 'Falha no registro' 
       });
     }
   };
@@ -229,7 +229,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           id: '1',
           name,
           email,
-          role: 'librarian' as Role,
+          role: Role.LIBRARIAN,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
         },
@@ -241,12 +241,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         payload: simulatedResponse 
       });
       
-      toast.success('Librarian account created successfully!');
+      toast.success('Conta de bibliotecário criada com sucesso!');
       navigate('/dashboard');
     } catch (error) {
       dispatch({ 
         type: 'REGISTER_FAILURE', 
-        payload: 'Librarian registration failed' 
+        payload: 'Falha no registro do bibliotecário' 
       });
     }
   };
@@ -254,7 +254,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Logout user
   const logout = () => {
     dispatch({ type: 'LOGOUT' });
-    toast.info('You have been logged out');
+    toast.info('Você foi desconectado');
     navigate('/login');
   };
 

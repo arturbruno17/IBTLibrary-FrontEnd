@@ -1,38 +1,29 @@
-
-// Enumerations
+// Auth
 export enum Role {
-  READER = "reader",
-  LIBRARIAN = "librarian",
-  ADMIN = "admin"
+  READER = 'reader',
+  LIBRARIAN = 'librarian',
+  ADMIN = 'admin'
 }
 
-export enum LoanStatus {
-  ACTIVE = "active",
-  RETURNED = "returned",
-  OVERDUE = "overdue",
-  EXTENDED = "extended"
-}
-
-// Auth interfaces
 export interface AuthState {
-  isAuthenticated: boolean;
   user: User | null;
+  token: string | null;
+  isAuthenticated: boolean;
   loading: boolean;
   error: string | null;
 }
 
-export interface AuthContextType {
-  isAuthenticated: boolean;
-  user: User | null;
-  loading: boolean;
-  error: string | null;
-  login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string) => Promise<void>;
-  logout: () => void;
-  hasRole: (roles: Role | Role[]) => boolean;
+// User
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: Role;
+  createdAt: string;
+  updatedAt: string;
 }
 
-// Book interfaces
+// Book related interfaces
 export interface Book {
   id: string;
   title: string;
@@ -44,49 +35,42 @@ export interface Book {
   cover?: string;
   quantity: number;
   availableQuantity: number;
-  createdAt: string;
-  updatedAt: string;
+  addedBy?: string;
+  addedAt?: string;
 }
 
-// User interfaces
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: Role;
-  createdAt: string;
-  updatedAt: string;
+// Loan related interfaces
+export enum LoanStatus {
+  PENDING = 'pending',
+  ACTIVE = 'active',
+  OVERDUE = 'overdue',
+  RETURNED = 'returned',
+  CANCELED = 'canceled'
 }
 
-// Loan interfaces
 export interface Loan {
   id: string;
+  bookId: string;
+  userId: string;
   book: Book;
   user: User;
   loanDate: string;
   dueDate: string;
   returnDate?: string;
   status: LoanStatus;
-  createdAt: string;
-  updatedAt: string;
 }
 
-// OpenLibrary API types
-export interface OpenLibraryAuthor {
-  key: string;
-  name: string;
-}
-
+// OpenLibrary API response interfaces
 export interface OpenLibraryBook {
-  key?: string;
+  key: string;
   title: string;
   author_name?: string[];
-  authors?: OpenLibraryAuthor[];
+  authors?: { name: string }[];
   isbn?: string[];
   publisher?: string[];
   publish_date?: string;
-  cover_i?: number;
   description?: string;
+  cover_i?: number;
 }
 
 export interface OpenLibraryResponse {

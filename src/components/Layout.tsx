@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import Navbar from './Navbar';
 import { useAuth } from '@/context/AuthContext';
@@ -29,28 +30,28 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   const navItems = [
     {
-      label: 'Dashboard',
+      label: 'Painel',
       icon: <Home className="h-5 w-5" />,
       href: '/dashboard',
       roles: [Role.READER, Role.LIBRARIAN, Role.ADMIN],
     },
     {
-      label: 'Catalog',
+      label: 'Catálogo',
       icon: <BookOpen className="h-5 w-5" />,
       href: '/catalog',
       roles: [Role.READER, Role.LIBRARIAN, Role.ADMIN],
     },
     {
-      label: 'Loans',
+      label: 'Empréstimos',
       icon: <BookCopy className="h-5 w-5" />,
       href: '/loans',
       roles: [Role.READER, Role.LIBRARIAN, Role.ADMIN],
     },
     {
-      label: 'Users',
+      label: 'Usuários',
       icon: <Users className="h-5 w-5" />,
       href: '/users',
-      roles: [Role.ADMIN],
+      roles: [Role.READER, Role.LIBRARIAN, Role.ADMIN],
     },
   ];
 
@@ -64,7 +65,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         variant="ghost" 
         className="lg:hidden fixed top-4 left-4 z-50 p-2" 
         onClick={toggleSidebar}
-        aria-label={sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
+        aria-label={sidebarOpen ? 'Fechar menu' : 'Abrir menu'}
       >
         {sidebarOpen ? (
           <X className="h-6 w-6" />
@@ -95,11 +96,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             >
               <img 
                 src="/lovable-uploads/48887cda-ca86-4941-9254-053b934dc754.png" 
-                alt="Library Logo" 
+                alt="Logo da Biblioteca" 
                 className="h-8 w-8"
               />
               <span className="text-xl font-display font-bold text-foreground">
-                Library
+                Biblioteca
               </span>
             </Link>
           </div>
@@ -138,7 +139,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">{user.name}</p>
-                    <p className="text-xs text-muted-foreground capitalize">{user.role}</p>
+                    <p className="text-xs text-muted-foreground capitalize">
+                      {user.role === 'admin' ? 'Administrador' : 
+                       user.role === 'librarian' ? 'Bibliotecário' : 'Leitor'}
+                    </p>
                   </div>
                 </div>
 
@@ -151,7 +155,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   }}
                 >
                   <LogOut className="h-4 w-4 mr-2" />
-                  <span>Logout</span>
+                  <span>Sair</span>
                 </Button>
               </div>
             )}

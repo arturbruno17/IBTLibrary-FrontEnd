@@ -4,7 +4,6 @@ import { Link } from 'react-router-dom';
 import { 
   User, 
   LogOut, 
-  Bell, 
   Moon, 
   Sun,
   PlusCircle
@@ -42,10 +41,10 @@ const Navbar: React.FC<NavbarProps> = ({ user, logout }) => {
           <Link to="/" className="lg:hidden flex items-center space-x-2">
             <img 
               src="/lovable-uploads/48887cda-ca86-4941-9254-053b934dc754.png" 
-              alt="Library Logo" 
+              alt="Logo da Biblioteca" 
               className="h-8 w-8"
             />
-            <span className="font-display text-lg font-bold">Library</span>
+            <span className="font-display text-lg font-bold">Biblioteca</span>
           </Link>
         )}
 
@@ -65,7 +64,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, logout }) => {
             variant="ghost" 
             size="icon"
             onClick={toggleTheme}
-            aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+            aria-label={`Mudar para o modo ${theme === 'light' ? 'escuro' : 'claro'}`}
           >
             {theme === 'light' ? (
               <Moon className="h-5 w-5" />
@@ -81,20 +80,11 @@ const Navbar: React.FC<NavbarProps> = ({ user, logout }) => {
               size="icon" 
               asChild
             >
-              <Link to="/add-book" aria-label="Add book">
+              <Link to="/add-book" aria-label="Adicionar livro">
                 <PlusCircle className="h-5 w-5" />
               </Link>
             </Button>
           )}
-
-          {/* Notifications (placeholder) */}
-          <Button 
-            variant="ghost" 
-            size="icon"
-            aria-label="View notifications"
-          >
-            <Bell className="h-5 w-5" />
-          </Button>
 
           {/* User menu */}
           {user && (
@@ -104,7 +94,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, logout }) => {
                   variant="ghost" 
                   size="icon" 
                   className="rounded-full"
-                  aria-label="Open user menu"
+                  aria-label="Abrir menu do usuário"
                 >
                   <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground">
                     {user.name.charAt(0).toUpperCase()}
@@ -125,7 +115,16 @@ const Navbar: React.FC<NavbarProps> = ({ user, logout }) => {
                     className="cursor-pointer flex w-full items-center"
                   >
                     <User className="h-4 w-4 mr-2" />
-                    Profile
+                    Perfil
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link 
+                    to="/users" 
+                    className="cursor-pointer flex w-full items-center"
+                  >
+                    <User className="h-4 w-4 mr-2" />
+                    Usuários
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
@@ -134,7 +133,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, logout }) => {
                   onClick={logout}
                 >
                   <LogOut className="h-4 w-4 mr-2" />
-                  Logout
+                  <span>Sair</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
