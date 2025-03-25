@@ -35,9 +35,13 @@ export const searchByISBN = async (isbn: string): Promise<OpenLibraryBook | null
 
 // Parse OpenLibrary book to our format
 export const parseOpenLibraryBook = (book: OpenLibraryBook) => {
+  const authorName = book.author_name && book.author_name.length > 0 
+    ? book.author_name.join(', ')
+    : book.authors?.map(author => author.name).join(', ') || 'Desconhecido';
+    
   return {
     title: book.title,
-    author: book.authors?.map(author => author.name).join(', ') || 'Desconhecido',
+    author: authorName,
     isbn: book.isbn?.[0] || '',
     publisher: book.publisher?.[0] || '',
     publishedYear: book.publish_date ? parseInt(book.publish_date.slice(-4)) : undefined,

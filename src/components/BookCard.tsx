@@ -23,6 +23,7 @@ const BookCard: React.FC<BookCardProps> = ({ book, className }) => {
       <Link to={`/books/${book.id}`} className="block">
         <div className="p-4">
           <h3 className="font-medium leading-tight line-clamp-2">{book.title}</h3>
+          <p className="text-sm text-muted-foreground mt-1 line-clamp-1">{book.author}</p>
           
           <div className="mt-2 text-xs text-muted-foreground flex items-center justify-between">
             <Badge 
