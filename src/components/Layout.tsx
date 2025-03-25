@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Navbar from './Navbar';
 import { useAuth } from '@/context/AuthContext';
@@ -61,7 +60,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   return (
     <div className="flex h-screen bg-background overflow-hidden">
-      {/* Mobile sidebar toggle */}
       <Button 
         variant="ghost" 
         className="lg:hidden fixed top-4 left-4 z-50 p-2" 
@@ -75,7 +73,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         )}
       </Button>
 
-      {/* Sidebar backdrop for mobile */}
       {sidebarOpen && (
         <div 
           className="fixed inset-0 bg-background/80 backdrop-blur-sm lg:hidden z-30"
@@ -83,7 +80,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         />
       )}
 
-      {/* Sidebar */}
       <div 
         className={cn(
           "glass-darker fixed inset-y-0 left-0 z-40 w-64 transition-transform duration-300 ease-in-out transform lg:translate-x-0 lg:static lg:w-64 lg:min-h-screen flex-shrink-0",
@@ -97,14 +93,17 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               className="flex items-center space-x-2 animate-pulse-subtle"
               onClick={closeSidebar}
             >
-              <BookOpen className="h-8 w-8 text-primary" />
+              <img 
+                src="/lovable-uploads/48887cda-ca86-4941-9254-053b934dc754.png" 
+                alt="Library Logo" 
+                className="h-8 w-8"
+              />
               <span className="text-xl font-display font-bold text-foreground">
-                IBT Library
+                Library
               </span>
             </Link>
           </div>
 
-          {/* Navigation links */}
           <nav className="flex-1 overflow-y-auto py-4 px-2">
             <ul className="space-y-1">
               {filteredNavItems.map((item) => {
@@ -130,7 +129,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             </ul>
           </nav>
 
-          {/* User section */}
           <div className="border-t border-border/50 p-4">
             {user && (
               <div className="flex flex-col space-y-2">
@@ -161,7 +159,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         </div>
       </div>
 
-      {/* Main content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         <Navbar user={user} logout={logout} />
         <main className="flex-1 overflow-y-auto py-6 px-6 lg:py-8 lg:px-10 bg-background">

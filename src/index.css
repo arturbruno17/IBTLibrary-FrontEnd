@@ -1,4 +1,3 @@
-
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap');
 
 @tailwind base;
@@ -7,8 +6,8 @@
 
 @layer base {
   :root {
-    --background: 0 0% 99%;
-    --foreground: 240 10% 3.9%;
+    --background: 20 100% 99%;
+    --foreground: 20 70% 10%;
 
     --card: 0 0% 100%;
     --card-foreground: 240 10% 3.9%;
@@ -16,17 +15,17 @@
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
 
-    --primary: 220 70% 50%;
+    --primary: 16 100% 62%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
+    --secondary: 0 68% 47%;
+    --secondary-foreground: 0 0% 100%;
 
     --muted: 240 4.8% 95.9%;
     --muted-foreground: 240 3.8% 46.1%;
 
-    --accent: 220 70% 95%;
-    --accent-foreground: 220 70% 25%;
+    --accent: 0 0% 29%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
@@ -48,8 +47,8 @@
   }
 
   .dark {
-    --background: 240 10% 4%;
-    --foreground: 0 0% 98%;
+    --background: 20 70% 10%;
+    --foreground: 20 100% 99%;
 
     --card: 240 10% 6%;
     --card-foreground: 0 0% 98%;
@@ -57,17 +56,17 @@
     --popover: 240 10% 6%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 220 70% 60%;
+    --primary: 16 100% 62%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 240 3.7% 15.9%;
+    --secondary: 0 68% 47%;
     --secondary-foreground: 0 0% 98%;
 
     --muted: 240 3.7% 15.9%;
     --muted-foreground: 240 5% 64.9%;
 
-    --accent: 220 70% 25%;
-    --accent-foreground: 220 70% 95%;
+    --accent: 0 0% 29%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;

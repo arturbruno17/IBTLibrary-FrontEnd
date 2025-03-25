@@ -38,10 +38,14 @@ const Navbar: React.FC<NavbarProps> = ({ user, logout }) => {
   return (
     <header className="glass-darker sticky top-0 z-20 border-b border-border/50">
       <div className="px-4 lg:px-8 flex h-16 items-center justify-between">
-        {/* Left section - Brand (visible on mobile to replace sidebar) */}
         {isMobile && (
           <Link to="/" className="lg:hidden flex items-center space-x-2">
-            <span className="font-display text-lg font-bold">IBT Library</span>
+            <img 
+              src="/lovable-uploads/48887cda-ca86-4941-9254-053b934dc754.png" 
+              alt="Library Logo" 
+              className="h-8 w-8"
+            />
+            <span className="font-display text-lg font-bold">Library</span>
           </Link>
         )}
 
