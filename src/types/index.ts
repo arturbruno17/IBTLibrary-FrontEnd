@@ -33,7 +33,6 @@ export interface Book {
   publisher?: string;
   publishedYear?: number;
   description?: string;
-  cover?: string;
   quantity: number;
   availableQuantity: number;
   addedBy?: string;
@@ -76,7 +75,6 @@ export interface OpenLibraryBook {
   publisher?: string[];
   publish_date?: string;
   description?: string;
-  cover_i?: number;
 }
 
 export interface OpenLibraryResponse {

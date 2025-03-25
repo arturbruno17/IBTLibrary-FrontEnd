@@ -9,7 +9,6 @@ import { Textarea } from '@/components/ui/textarea';
 import {
   ArrowLeft,
   Loader2,
-  BookOpen,
   Scan,
   Search,
   Plus,
@@ -18,7 +17,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/context/AuthContext';
-import { Book } from '@/types';
+import { Book, Role } from '@/types';
 import BarcodeScanner from '@/components/BarcodeScanner';
 import { parseOpenLibraryBook, searchByISBN } from '@/services/openLibraryApi';
 import { mockBooks } from '@/data/mockData';
@@ -30,7 +29,6 @@ interface BookFormData {
   publisher: string;
   publishedYear: string;
   description: string;
-  cover: string;
   quantity: number;
 }
 
@@ -48,7 +46,6 @@ const AddBook = () => {
     publisher: '',
     publishedYear: '',
     description: '',
-    cover: '',
     quantity: 1
   });
   
@@ -76,11 +73,10 @@ const AddBook = () => {
             publisher: book.publisher || '',
             publishedYear: book.publishedYear ? book.publishedYear.toString() : '',
             description: book.description || '',
-            cover: book.cover || '',
             quantity: book.quantity
           });
         } else {
-          toast.error('Book not found');
+          toast.error('Livro não encontrado');
           navigate('/catalog');
         }
         
@@ -108,7 +104,7 @@ const AddBook = () => {
   // Handle ISBN search
   const handleIsbnSearch = async (isbn: string) => {
     if (!isbn.trim()) {
-      toast.error('Please enter an ISBN to search');
+      toast.error('Por favor, insira um ISBN para pesquisar');
       return;
     }
     
@@ -126,17 +122,16 @@ const AddBook = () => {
           publisher: parsedBook.publisher || '',
           publishedYear: parsedBook.publishedYear ? parsedBook.publishedYear.toString() : '',
           description: parsedBook.description || '',
-          cover: parsedBook.cover || '',
           quantity: formData.quantity
         });
         
-        toast.success('Book information found!');
+        toast.success('Informações do livro encontradas!');
       } else {
-        toast.error('No book found with this ISBN');
+        toast.error('Nenhum livro encontrado com este ISBN');
       }
     } catch (error) {
-      console.error('Error searching ISBN:', error);
-      toast.error('Error searching for book');
+      console.error('Erro ao pesquisar ISBN:', error);
+      toast.error('Erro ao pesquisar o livro');
     } finally {
       setIsbnLoading(false);
     }
@@ -155,7 +150,7 @@ const AddBook = () => {
     
     // Validate form
     if (!formData.title || !formData.author || !formData.isbn) {
-      toast.error('Please fill in all required fields');
+      toast.error('Por favor, preencha todos os campos obrigatórios');
       return;
     }
     
@@ -175,7 +170,6 @@ const AddBook = () => {
           publisher: formData.publisher,
           publishedYear: formData.publishedYear ? parseInt(formData.publishedYear) : undefined,
           description: formData.description,
-          cover: formData.cover,
           quantity: formData.quantity,
           availableQuantity: formData.quantity,
           createdAt: new Date().toISOString(),
@@ -185,9 +179,9 @@ const AddBook = () => {
         // Add the new book to the global mockBooks array
         mockBooks.push(newBook);
         
-        toast.success(`Book "${formData.title}" added successfully`);
-        console.log('Book added:', newBook);
-        console.log('Updated book list:', mockBooks);
+        toast.success(`Livro "${formData.title}" adicionado com sucesso`);
+        console.log('Livro adicionado:', newBook);
+        console.log('Lista de livros atualizada:', mockBooks);
       } else {
         // Find and update the book
         const bookIndex = mockBooks.findIndex(b => b.id === id);
@@ -200,12 +194,11 @@ const AddBook = () => {
             publisher: formData.publisher,
             publishedYear: formData.publishedYear ? parseInt(formData.publishedYear) : undefined,
             description: formData.description,
-            cover: formData.cover,
             quantity: formData.quantity,
             updatedAt: new Date().toISOString()
           };
           
-          toast.success(`Book "${formData.title}" updated successfully`);
+          toast.success(`Livro "${formData.title}" atualizado com sucesso`);
         }
       }
       
@@ -214,8 +207,8 @@ const AddBook = () => {
         navigate('/catalog');
       }, 1000);
     } catch (error) {
-      console.error('Error submitting form:', error);
-      toast.error('An error occurred while saving the book');
+      console.error('Erro ao enviar formulário:', error);
+      toast.error('Ocorreu um erro ao salvar o livro');
     } finally {
       setSubmitting(false);
     }
@@ -226,7 +219,7 @@ const AddBook = () => {
       <Layout>
         <div className="flex flex-col items-center justify-center py-12">
           <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-          <p className="text-muted-foreground">Loading book data...</p>
+          <p className="text-muted-foreground">Carregando dados do livro...</p>
         </div>
       </Layout>
     );
@@ -240,18 +233,18 @@ const AddBook = () => {
           <Button variant="ghost" size="sm" asChild>
             <Link to="/catalog">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Catalog
+              Voltar ao Catálogo
             </Link>
           </Button>
         </div>
         
         <div className="space-y-6">
           <div>
-            <h1>{isEditMode ? 'Edit Book' : 'Add New Book'}</h1>
+            <h1>{isEditMode ? 'Editar Livro' : 'Adicionar Novo Livro'}</h1>
             <p className="text-muted-foreground">
               {isEditMode
-                ? 'Update the information for this book'
-                : 'Fill in the details to add a new book to the catalog'}
+                ? 'Atualize as informações deste livro'
+                : 'Preencha os detalhes para adicionar um novo livro ao catálogo'}
             </p>
           </div>
           
@@ -259,7 +252,7 @@ const AddBook = () => {
             {/* ISBN section with scanner */}
             <div className="p-6 border rounded-lg space-y-4">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold">ISBN Lookup</h2>
+                <h2 className="text-lg font-semibold">Busca por ISBN</h2>
                 <Button
                   type="button"
                   variant="outline"
@@ -267,7 +260,7 @@ const AddBook = () => {
                   onClick={() => setShowScanner(true)}
                 >
                   <Scan className="h-4 w-4 mr-2" />
-                  Scan Barcode
+                  Escanear Código de Barras
                 </Button>
               </div>
               
@@ -279,7 +272,7 @@ const AddBook = () => {
                     name="isbn"
                     value={formData.isbn}
                     onChange={handleChange}
-                    placeholder="Enter ISBN (e.g., 9780061120084)"
+                    placeholder="Digite o ISBN (ex: 9780061120084)"
                   />
                 </div>
                 <div className="flex items-end">
@@ -294,13 +287,13 @@ const AddBook = () => {
                     ) : (
                       <Search className="h-4 w-4 mr-2" />
                     )}
-                    {isbnLoading ? 'Searching...' : 'Search'}
+                    {isbnLoading ? 'Buscando...' : 'Buscar'}
                   </Button>
                 </div>
               </div>
               
               <p className="text-sm text-muted-foreground">
-                Enter an ISBN and click Search to automatically fill book details, or use the scanner.
+                Digite um ISBN e clique em Buscar para preencher automaticamente os detalhes do livro, ou use o scanner.
               </p>
             </div>
             
@@ -310,57 +303,57 @@ const AddBook = () => {
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="title">
-                    Title <span className="text-destructive">*</span>
+                    Título <span className="text-destructive">*</span>
                   </Label>
                   <Input
                     id="title"
                     name="title"
                     value={formData.title}
                     onChange={handleChange}
-                    placeholder="Book title"
+                    placeholder="Título do livro"
                     required
                   />
                 </div>
                 
                 <div className="space-y-2">
                   <Label htmlFor="author">
-                    Author <span className="text-destructive">*</span>
+                    Autor <span className="text-destructive">*</span>
                   </Label>
                   <Input
                     id="author"
                     name="author"
                     value={formData.author}
                     onChange={handleChange}
-                    placeholder="Author name"
+                    placeholder="Nome do autor"
                     required
                   />
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="publisher">Publisher</Label>
+                  <Label htmlFor="publisher">Editora</Label>
                   <Input
                     id="publisher"
                     name="publisher"
                     value={formData.publisher}
                     onChange={handleChange}
-                    placeholder="Publisher name"
+                    placeholder="Nome da editora"
                   />
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="publishedYear">Year Published</Label>
+                  <Label htmlFor="publishedYear">Ano de Publicação</Label>
                   <Input
                     id="publishedYear"
                     name="publishedYear"
                     value={formData.publishedYear}
                     onChange={handleChange}
-                    placeholder="Year of publication"
+                    placeholder="Ano de publicação"
                     type="number"
                   />
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="quantity">Quantity</Label>
+                  <Label htmlFor="quantity">Quantidade</Label>
                   <div className="flex items-center space-x-2">
                     <Button
                       type="button"
@@ -395,43 +388,14 @@ const AddBook = () => {
               {/* Right column */}
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="cover">Cover Image URL</Label>
-                  <Input
-                    id="cover"
-                    name="cover"
-                    value={formData.cover}
-                    onChange={handleChange}
-                    placeholder="URL to book cover image"
-                  />
-                  
-                  <div className="mt-2 border rounded-md p-2 aspect-[2/3] flex items-center justify-center bg-muted">
-                    {formData.cover ? (
-                      <img
-                        src={formData.cover}
-                        alt="Book cover preview"
-                        className="max-h-full max-w-full object-contain"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = '/placeholder.svg';
-                        }}
-                      />
-                    ) : (
-                      <div className="text-center text-muted-foreground">
-                        <BookOpen className="h-8 w-8 mx-auto mb-2" />
-                        <p>Cover preview</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="description">Description</Label>
+                  <Label htmlFor="description">Descrição</Label>
                   <Textarea
                     id="description"
                     name="description"
                     value={formData.description}
                     onChange={handleChange}
-                    placeholder="Book description"
-                    rows={5}
+                    placeholder="Descrição do livro"
+                    rows={12}
                   />
                 </div>
               </div>
@@ -444,18 +408,18 @@ const AddBook = () => {
                 variant="outline"
                 onClick={() => navigate('/catalog')}
               >
-                Cancel
+                Cancelar
               </Button>
               <Button type="submit" disabled={submitting}>
                 {submitting ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    {isEditMode ? 'Updating...' : 'Saving...'}
+                    {isEditMode ? 'Atualizando...' : 'Salvando...'}
                   </>
                 ) : (
                   <>
                     <Save className="h-4 w-4 mr-2" />
-                    {isEditMode ? 'Update Book' : 'Save Book'}
+                    {isEditMode ? 'Atualizar Livro' : 'Salvar Livro'}
                   </>
                 )}
               </Button>

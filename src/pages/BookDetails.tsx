@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
@@ -11,7 +10,6 @@ import {
   BookCopy,
   ArrowLeft,
   CheckCircle,
-  BookOpen,
   Loader2,
   AlertTriangle
 } from 'lucide-react';
@@ -30,7 +28,6 @@ import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 
-// Use the same mock data as in Catalog
 const mockBooks: Book[] = [
   {
     id: '1',
@@ -40,7 +37,6 @@ const mockBooks: Book[] = [
     publisher: 'Scribner',
     publishedYear: 1925,
     description: 'A story of wealth, love, and tragedy set in the Roaring Twenties.',
-    cover: 'https://covers.openlibrary.org/b/id/8432047-M.jpg',
     quantity: 3,
     availableQuantity: 1,
     createdAt: '2023-01-01T00:00:00Z',
@@ -150,18 +146,16 @@ const BookDetails = () => {
   const { id } = useParams<{ id: string }>();
   const { hasRole, user } = useAuth();
   const navigate = useNavigate();
-  const isLibrarianOrAdmin = hasRole(['librarian', 'admin'] as Role[]);
+  const isLibrarianOrAdmin = hasRole([Role.LIBRARIAN, Role.ADMIN]);
   
   const [book, setBook] = useState<Book | null>(null);
   const [loading, setLoading] = useState(true);
   const [borrowing, setBorrowing] = useState(false);
   const [deleting, setDeleting] = useState(false);
   
-  // Fetch book details
   useEffect(() => {
     const fetchBook = async () => {
       setLoading(true);
-      // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 800));
       
       const foundBook = mockBooks.find(book => book.id === id);
@@ -172,31 +166,27 @@ const BookDetails = () => {
     fetchBook();
   }, [id]);
   
-  // Handle borrow action
   const handleBorrow = async () => {
     if (!book || !user) return;
     
     setBorrowing(true);
     
-    // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1000));
     
-    toast.success(`Successfully borrowed "${book.title}"`);
+    toast.success(`Empréstimo de "${book.title}" realizado com sucesso`);
     setBook(prev => prev ? { ...prev, availableQuantity: prev.availableQuantity - 1 } : null);
     
     setBorrowing(false);
   };
   
-  // Handle delete action
   const handleDelete = async () => {
     if (!book) return;
     
     setDeleting(true);
     
-    // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1000));
     
-    toast.success(`Book "${book.title}" has been deleted`);
+    toast.success(`Livro "${book.title}" excluído com sucesso`);
     
     setDeleting(false);
     navigate('/catalog');
@@ -207,7 +197,7 @@ const BookDetails = () => {
       <Layout>
         <div className="flex flex-col items-center justify-center py-12">
           <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-          <p className="text-muted-foreground">Loading book details...</p>
+          <p className="text-muted-foreground">Carregando detalhes do livro...</p>
         </div>
       </Layout>
     );
@@ -218,14 +208,14 @@ const BookDetails = () => {
       <Layout>
         <div className="flex flex-col items-center justify-center py-12">
           <AlertTriangle className="h-12 w-12 text-destructive mb-4" />
-          <h2 className="text-2xl font-bold mb-2">Book Not Found</h2>
+          <h2 className="text-2xl font-bold mb-2">Livro não encontrado</h2>
           <p className="text-muted-foreground mb-6">
-            The book you're looking for doesn't exist or has been removed.
+            O livro que você está procurando não existe ou foi removido.
           </p>
           <Button asChild>
             <Link to="/catalog">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Catalog
+              Voltar ao Catálogo
             </Link>
           </Button>
         </div>
@@ -238,137 +228,61 @@ const BookDetails = () => {
   return (
     <Layout>
       <div className="animate-fade-in">
-        {/* Back button */}
         <div className="mb-6">
           <Button variant="ghost" size="sm" asChild>
             <Link to="/catalog">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Catalog
+              Voltar ao Catálogo
             </Link>
           </Button>
         </div>
         
-        {/* Book details */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* Book cover */}
-          <div className="md:col-span-1">
-            <div className="bg-card rounded-lg overflow-hidden border shadow-md">
-              {book.cover ? (
-                <img 
-                  src={book.cover} 
-                  alt={book.title} 
-                  className="w-full h-auto object-cover"
-                />
-              ) : (
-                <div className="aspect-[2/3] w-full flex items-center justify-center bg-muted">
-                  <BookOpen className="h-16 w-16 text-muted-foreground" />
-                </div>
-              )}
+        <div className="grid grid-cols-1 gap-8">
+          <div>
+            <div className="mb-4">
+              <h1 className="text-3xl font-bold mb-2">{book.title}</h1>
+              <h2 className="text-xl text-muted-foreground mb-4">por {book.author}</h2>
               
-              {/* Availability badge */}
-              <div className="p-4">
-                <Badge 
-                  className={`w-full justify-center py-1 px-2 ${
-                    isAvailable ? 'bg-green-500 hover:bg-green-600' : 'bg-destructive hover:bg-destructive/90'
-                  }`}
-                >
-                  {isAvailable ? (
-                    <span className="flex items-center">
-                      <CheckCircle className="h-3 w-3 mr-1" />
-                      Available ({book.availableQuantity} of {book.quantity})
-                    </span>
-                  ) : (
-                    <span>Currently Unavailable</span>
-                  )}
-                </Badge>
-              </div>
+              <Badge 
+                className={`py-1 px-2 ${
+                  isAvailable ? 'bg-green-500 hover:bg-green-600' : 'bg-destructive hover:bg-destructive/90'
+                }`}
+              >
+                {isAvailable ? (
+                  <span className="flex items-center">
+                    <CheckCircle className="h-3 w-3 mr-1" />
+                    Disponível ({book.availableQuantity} de {book.quantity})
+                  </span>
+                ) : (
+                  <span>Indisponível no momento</span>
+                )}
+              </Badge>
             </div>
-            
-            {/* Action buttons */}
-            <div className="mt-4 flex flex-col gap-2">
-              {isLibrarianOrAdmin ? (
-                <>
-                  <Button variant="outline" className="w-full justify-start" asChild>
-                    <Link to={`/edit-book/${book.id}`}>
-                      <Pencil className="h-4 w-4 mr-2" />
-                      Edit Book
-                    </Link>
-                  </Button>
-                  
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button variant="outline" className="w-full justify-start text-destructive">
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Delete Book
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          This action cannot be undone. This will permanently delete the book
-                          "{book.title}" and all associated loan records.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                          onClick={handleDelete}
-                          disabled={deleting}
-                        >
-                          {deleting ? 'Deleting...' : 'Delete'}
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </>
-              ) : (
-                <>
-                  <Button 
-                    className="w-full justify-start" 
-                    disabled={!isAvailable || borrowing}
-                    onClick={handleBorrow}
-                  >
-                    <BookCopy className="h-4 w-4 mr-2" />
-                    {borrowing ? 'Processing...' : 'Borrow Book'}
-                  </Button>
-                </>
-              )}
-            </div>
-          </div>
-          
-          {/* Book information */}
-          <div className="md:col-span-2">
-            <h1 className="text-3xl font-bold mb-2">{book.title}</h1>
-            <h2 className="text-xl text-muted-foreground mb-4">by {book.author}</h2>
             
             <div className="space-y-6">
-              {/* Description */}
               <div>
-                <h3 className="text-lg font-semibold mb-2">Description</h3>
-                <p className="text-muted-foreground">{book.description || 'No description available.'}</p>
+                <h3 className="text-lg font-semibold mb-2">Descrição</h3>
+                <p className="text-muted-foreground">{book.description || 'Sem descrição disponível.'}</p>
               </div>
               
               <Separator />
               
-              {/* Details */}
               <div>
-                <h3 className="text-lg font-semibold mb-3">Details</h3>
+                <h3 className="text-lg font-semibold mb-3">Detalhes</h3>
                 <dl className="grid grid-cols-2 gap-x-4 gap-y-2">
                   <dt className="font-medium">ISBN</dt>
                   <dd className="text-muted-foreground">{book.isbn}</dd>
                   
-                  <dt className="font-medium">Publisher</dt>
-                  <dd className="text-muted-foreground">{book.publisher || 'Unknown'}</dd>
+                  <dt className="font-medium">Editora</dt>
+                  <dd className="text-muted-foreground">{book.publisher || 'Desconhecida'}</dd>
                   
-                  <dt className="font-medium">Published Year</dt>
-                  <dd className="text-muted-foreground">{book.publishedYear || 'Unknown'}</dd>
+                  <dt className="font-medium">Ano de Publicação</dt>
+                  <dd className="text-muted-foreground">{book.publishedYear || 'Desconhecido'}</dd>
                   
-                  <dt className="font-medium">Total Copies</dt>
+                  <dt className="font-medium">Total de Exemplares</dt>
                   <dd className="text-muted-foreground">{book.quantity}</dd>
                   
-                  <dt className="font-medium">Available Copies</dt>
+                  <dt className="font-medium">Exemplares Disponíveis</dt>
                   <dd className={`${isAvailable ? 'text-green-600' : 'text-destructive'} font-medium`}>
                     {book.availableQuantity}
                   </dd>
@@ -377,19 +291,70 @@ const BookDetails = () => {
               
               <Separator />
               
-              {/* Loan history (for librarians only) */}
               {isLibrarianOrAdmin && (
                 <div>
-                  <h3 className="text-lg font-semibold mb-3">Loan History</h3>
+                  <h3 className="text-lg font-semibold mb-3">Histórico de Empréstimos</h3>
                   
                   <div className="border rounded-md">
                     <div className="p-4 text-center text-muted-foreground">
-                      <p>Recent loan records will appear here.</p>
-                      <p className="text-sm">No loan records found for this book.</p>
+                      <p>Registros recentes de empréstimos aparecerão aqui.</p>
+                      <p className="text-sm">Nenhum registro de empréstimo encontrado para este livro.</p>
                     </div>
                   </div>
                 </div>
               )}
+              
+              <div className="flex flex-col sm:flex-row gap-2 mt-4">
+                {isLibrarianOrAdmin ? (
+                  <>
+                    <Button variant="outline" className="justify-start" asChild>
+                      <Link to={`/edit-book/${book.id}`}>
+                        <Pencil className="h-4 w-4 mr-2" />
+                        Editar Livro
+                      </Link>
+                    </Button>
+                    
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="outline" className="justify-start text-destructive">
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Excluir Livro
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Esta ação não pode ser desfeita. Isso excluirá permanentemente o livro
+                            "{book.title}" e todos os registros de empréstimo associados.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                          <AlertDialogAction
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            onClick={handleDelete}
+                            disabled={deleting}
+                          >
+                            {deleting ? 'Excluindo...' : 'Excluir'}
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </>
+                ) : (
+                  <>
+                    <Button 
+                      className="justify-start" 
+                      disabled={!isAvailable || borrowing}
+                      onClick={handleBorrow}
+                    >
+                      <BookCopy className="h-4 w-4 mr-2" />
+                      {borrowing ? 'Processando...' : 'Emprestar Livro'}
+                    </Button>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         </div>
