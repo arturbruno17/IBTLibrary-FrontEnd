@@ -6,6 +6,32 @@ export enum Role {
   ADMIN = "admin"
 }
 
+export enum LoanStatus {
+  ACTIVE = "active",
+  RETURNED = "returned",
+  OVERDUE = "overdue",
+  EXTENDED = "extended"
+}
+
+// Auth interfaces
+export interface AuthState {
+  isAuthenticated: boolean;
+  user: User | null;
+  loading: boolean;
+  error: string | null;
+}
+
+export interface AuthContextType {
+  isAuthenticated: boolean;
+  user: User | null;
+  loading: boolean;
+  error: string | null;
+  login: (email: string, password: string) => Promise<void>;
+  register: (name: string, email: string, password: string) => Promise<void>;
+  logout: () => void;
+  hasRole: (roles: Role | Role[]) => boolean;
+}
+
 // Book interfaces
 export interface Book {
   id: string;
@@ -37,9 +63,10 @@ export interface Loan {
   id: string;
   book: Book;
   user: User;
+  loanDate: string;
   dueDate: string;
   returnDate?: string;
-  status: 'active' | 'returned' | 'overdue';
+  status: LoanStatus;
   createdAt: string;
   updatedAt: string;
 }
