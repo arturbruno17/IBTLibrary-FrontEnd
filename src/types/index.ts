@@ -1,3 +1,4 @@
+
 // Auth
 export enum Role {
   READER = 'reader',
@@ -37,6 +38,8 @@ export interface Book {
   availableQuantity: number;
   addedBy?: string;
   addedAt?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 // Loan related interfaces
@@ -45,7 +48,8 @@ export enum LoanStatus {
   ACTIVE = 'active',
   OVERDUE = 'overdue',
   RETURNED = 'returned',
-  CANCELED = 'canceled'
+  CANCELED = 'canceled',
+  EXTENDED = 'extended'
 }
 
 export interface Loan {
@@ -58,6 +62,8 @@ export interface Loan {
   dueDate: string;
   returnDate?: string;
   status: LoanStatus;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 // OpenLibrary API response interfaces

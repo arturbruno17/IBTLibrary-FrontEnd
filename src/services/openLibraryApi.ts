@@ -33,12 +33,6 @@ export const searchByISBN = async (isbn: string): Promise<OpenLibraryBook | null
   }
 };
 
-// Get book cover image URL
-export const getCoverImageUrl = (coverId?: number, size: 'S' | 'M' | 'L' = 'M'): string => {
-  if (!coverId) return '/placeholder.svg';
-  return `https://covers.openlibrary.org/b/id/${coverId}-${size}.jpg`;
-};
-
 // Parse OpenLibrary book to our format
 export const parseOpenLibraryBook = (book: OpenLibraryBook) => {
   return {
@@ -48,7 +42,6 @@ export const parseOpenLibraryBook = (book: OpenLibraryBook) => {
     publisher: book.publisher?.[0] || '',
     publishedYear: book.publish_date ? parseInt(book.publish_date.slice(-4)) : undefined,
     description: book.description || '',
-    cover: book.cover_i ? getCoverImageUrl(book.cover_i) : undefined,
     quantity: 1,
     availableQuantity: 1
   };
@@ -56,6 +49,5 @@ export const parseOpenLibraryBook = (book: OpenLibraryBook) => {
 
 export default {
   searchByISBN,
-  getCoverImageUrl,
   parseOpenLibraryBook
 };
