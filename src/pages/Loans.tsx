@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Layout from "@/components/Layout";
 import { useAuth } from "@/context/AuthContext";
 import { Loan, LoanStatus, Book, User, Role } from "@/types";
@@ -55,7 +55,7 @@ type LoanFilter = "all" | "IN_DAYS" | "RETURNED" | "OVERDUE";
 const Loans = () => {
   const { user, hasRole, loading: authLoading } = useAuth();
   const isLibrarianOrAdmin = hasRole([Role.LIBRARIAN, Role.ADMIN]);
-console.log("User ID:", user?.id);
+  console.log("User ID:", user?.id);
   const [loans, setLoans] = useState<Loan[]>([]);
   const [filteredLoans, setFilteredLoans] = useState<Loan[]>([]);
   const [loading, setLoading] = useState(true);
@@ -71,81 +71,95 @@ console.log("User ID:", user?.id);
 
   const [page, setPage] = useState(0);
   const [limit] = useState(10);
+  const currentRequest = useRef(0);
 
   const [processingLoanId, setProcessingLoanId] = useState<number | null>(null);
-//   const fetchAllBooks = async (): Promise<Book[]> => {
-//     let page = 0;
-//     const limit = 50;
-//     let allBooks: Book[] = [];
 
-//     while (true) {
-//       const booksPage = await booksAPI.getAll(page, limit);
-//       allBooks = allBooks.concat(booksPage);
+  const fetchAllBooks = async (): Promise<Book[]> => {
+    let allBooks: Book[] = [];
+    let page = 0;
+    const limit = 2000;
 
-//       if (booksPage.length < limit) break;
-//       page++;
-//     }
+    while (true) {
+      const booksPage = await booksAPI.getAll(page, limit);
+      allBooks = allBooks.concat(booksPage);
+      if (booksPage.length < limit) break;
+      page++;
+    }
 
-//     return allBooks;
-//   };
-useEffect(() => {
-    console.log("Auth loading:", user.id);
-},[authLoading])
+    return allBooks;
+  };
+
+  const fetchAllUsers = async (): Promise<User[]> => {
+    let allUsers: User[] = [];
+    let page = 0;
+    const limit = 2000;
+
+    while (true) {
+      const usersPage = await usersAPI.getAll(page, limit);
+      allUsers = allUsers.concat(usersPage);
+      if (usersPage.length < limit) break;
+      page++;
+    }
+
+    return allUsers;
+  };
 
   useEffect(() => {
-    const loadBooksAndUsers = async () => {
-      try {
-        const [books, users] = await Promise.all([
-        //   fetchAllBooks(),
-        booksAPI.getAll(0), // 👈 aqui
-          usersAPI.getAll(0), // 👈 aqui
-        ]);
+    console.log("Auth loading:", user.id);
+  }, [authLoading]);
 
-        const available = books.filter((book) => book.quantity > 0);
-        const readers = users.filter(
-          (user) => user.role === Role.READER || user.role === Role.LIBRARIAN
-        );
+  useEffect(() => {
+    let result = [...loans];
 
-        setAvailableBooks(available);
-        setAvailableUsers(readers);
-      } catch (error) {
-        toast.error("Erro ao carregar livros ou usuários");
-        console.error("Erro ao buscar dados:", error);
-      }
-    };
-
-    if (showLoanDialog) {
-      loadBooksAndUsers();
+    if (filter !== "all") {
+      result = result.filter((loan) => deriveLoanStatus(loan) === filter);
     }
-  }, [showLoanDialog]);
 
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(
+        (loan) =>
+          loan.book?.title.toLowerCase().includes(query) ||
+          loan.book?.author.toLowerCase().includes(query) ||
+          loan.person?.name.toLowerCase().includes(query)
+      );
+    }
 
-
+    setFilteredLoans(result);
+  }, [loans, searchQuery, filter]);
 
   const loadLoans = async () => {
     setLoading(true);
+    const requestId = ++currentRequest.current;
 
     try {
+      if (!isLibrarianOrAdmin && user?.id) {
+        const loansByUser = await usersAPI.getLoanByUser(user.id);
+
+        if (requestId !== currentRequest.current) return;
+
+        setLoans(loansByUser);
+        return;
+      }
       const filters: {
         page: number;
         limit: number;
-        person_id?: number;
-        types?: LoanStatus[];
+        types?: LoanStatus;
       } = {
         page,
         limit,
       };
 
-      if (!isLibrarianOrAdmin && user?.id) {
-        filters.person_id = user.id;
-      }
-
       if (filter !== "all") {
-        filters.types = [filter as LoanStatus];
+        filters.types = filter as LoanStatus;
       }
 
       const fetched = await loansAPI.getAllLoans(filters);
-      setLoans(fetched); // apenas o que vem da API
+
+      if (requestId !== currentRequest.current) return;
+
+      setLoans(fetched);
     } catch (error) {
       toast.error("Erro ao carregar empréstimos.");
       console.error(error);
@@ -164,8 +178,8 @@ useEffect(() => {
     const loadBooksAndUsers = async () => {
       try {
         const [books, users] = await Promise.all([
-          booksAPI.getAll(),
-          usersAPI.getAll(),
+          booksAPI.getAll(0, 5000),
+          usersAPI.getAll(0, 5000),
         ]);
 
         const available = books.filter((book) => book.quantity > 0);
@@ -220,7 +234,7 @@ useEffect(() => {
 
     try {
       await loansAPI.create(selectedBook, selectedUser);
-
+      await loadLoans();
       toast.success("Loan created successfully!");
       setShowLoanDialog(false);
       setSelectedBook("");
@@ -259,7 +273,11 @@ useEffect(() => {
 
       const updatedLoans = [...loans];
       updatedLoans[loanIndex] = updatedLoan;
-      setLoans([...loans.slice(0, loanIndex), updatedLoan, ...loans.slice(loanIndex + 1)]);
+      setLoans([
+        ...loans.slice(0, loanIndex),
+        updatedLoan,
+        ...loans.slice(loanIndex + 1),
+      ]);
 
       //   const mockLoanIndex = mockLoans.findIndex((l) => l.id === loanId);
       //   if (mockLoanIndex >= 0) {
@@ -267,7 +285,7 @@ useEffect(() => {
       //   }
 
       const returnLoan = await loansAPI.return(id);
-
+      await loadLoans();
       toast.success(`Book "${loan.book.title}" has been returned`);
     }
 
@@ -310,7 +328,7 @@ useEffect(() => {
   };
 
   const getLoanStatusBadge = (loan: Loan) => {
-    const status = deriveLoanStatus(loan);
+    const status = loan.type as LoanStatus;
 
     if (status === LoanStatus.RETURNED) {
       return (
@@ -335,7 +353,8 @@ useEffect(() => {
         </Badge>
       );
     }
-    if (status === LoanStatus.INDAYS) {
+
+    if (status === LoanStatus.IN_DAYS) {
       return (
         <Badge
           variant="outline"
@@ -347,15 +366,7 @@ useEffect(() => {
       );
     }
 
-    return (
-      <Badge
-        variant="outline"
-        className="bg-blue-500/10 text-blue-700 hover:bg-blue-500/20"
-      >
-        <BookCopy className="h-3 w-3 mr-1" />
-        Em dia
-      </Badge>
-    );
+    return null;
   };
 
   const calculateDueDate = (startDate: string, duration: number): string => {
@@ -371,7 +382,7 @@ useEffect(() => {
 
     if (now > dueDate) return LoanStatus.OVERDUE;
 
-    return LoanStatus.INDAYS;
+    return LoanStatus.IN_DAYS;
   };
 
   return (
@@ -567,7 +578,7 @@ useEffect(() => {
                             <td className="px-4 py-3 text-right">
                               <div className="flex justify-end space-x-2">
                                 {deriveLoanStatus(loan) ===
-                                  LoanStatus.INDAYS && (
+                                  LoanStatus.IN_DAYS && (
                                   <>
                                     <Button
                                       variant="outline"
@@ -719,14 +730,29 @@ useEffect(() => {
                 <SelectContent>
                   {availableBooks.length > 0 ? (
                     availableBooks.map((book) => (
-                      <SelectItem key={book.id} value={book.id.toString()}>
-                        {book.title} by {book.author} ({book.quantity}{" "}
-                        available)
+                      <SelectItem
+                        key={book.id}
+                        value={book.id.toString()}
+                        disabled={book.available <= 0}
+                      >
+                        {book.title} by {book.author}{" "}
+                        {book.available > 0 ? (
+                          <span className="text-blue-600 font-medium ml-2">
+                            ({book.available}{" "}
+                            {book.available > 1 ? "disponíveis" : "disponível"})
+                          </span>
+                        ) : (
+                          <span className="text-red-500 font-semibold ml-2">
+                            (INDISPONÍVEL)
+                          </span>
+                        )}
                       </SelectItem>
                     ))
                   ) : (
                     <SelectItem value="none" disabled>
-                      No books available
+                      <span className="text-red-500 font-semibold">
+                        INDISPONÍVEL
+                      </span>
                     </SelectItem>
                   )}
                 </SelectContent>

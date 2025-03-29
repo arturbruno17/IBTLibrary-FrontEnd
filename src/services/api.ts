@@ -114,7 +114,7 @@ export const loansAPI = {
         limit?: number;
         person_id?: number;
         book_id?: number;
-        types?: LoanStatus[];
+        types?: LoanStatus;
     }) => {
         const response = await api.get<Loan[]>('/loan', {
             params: {
@@ -139,8 +139,6 @@ export const usersAPI = {
           page: page + 1,
           limit,
         };
-
-        // Somente adiciona 'q' se houver texto
         if (query.trim() !== "") {
           params.q = query.trim();
         }
@@ -149,15 +147,14 @@ export const usersAPI = {
         return response.data;
       },
 
-
-    //   getAll: async () => {
-    //     const response = await api.get<User[]>('/people');
-    //     return response.data;
-    //   },
     getById: async (id: string) => {
         const response = await api.get<User>(`/people/${id}`);
         return response.data;
     },
+    getLoanByUser: async (id: number): Promise<Loan[]> => {
+        const response = await api.get(`/people/${id}/loans`);
+        return response.data;
+      },
     update: async (id: string, user: Partial<User>) => {
         const response = await api.put<User>(`/people/${id}`, user);
         return response.data;

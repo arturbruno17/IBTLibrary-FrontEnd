@@ -3,14 +3,14 @@ import React, { useState } from 'react';
 import Navbar from './Navbar';
 import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
-import { 
-  BookOpen, 
-  Home, 
-  BookCopy, 
-  Users, 
-  LogOut, 
-  Menu, 
-  X 
+import {
+  BookOpen,
+  Home,
+  BookCopy,
+  Users,
+  LogOut,
+  Menu,
+  X
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -51,7 +51,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       label: 'Usuários',
       icon: <Users className="h-5 w-5" />,
       href: '/users',
-      roles: [Role.LIBRARIAN, Role.ADMIN],
+      roles: [Role.LIBRARIAN, Role.ADMIN, Role.READER],
     },
   ];
 
@@ -61,9 +61,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   return (
     <div className="flex h-screen bg-background overflow-hidden">
-      <Button 
-        variant="ghost" 
-        className="lg:hidden fixed top-4 left-4 z-50 p-2" 
+      <Button
+        variant="ghost"
+        className="lg:hidden fixed top-4 left-4 z-50 p-2"
         onClick={toggleSidebar}
         aria-label={sidebarOpen ? 'Fechar menu' : 'Abrir menu'}
       >
@@ -75,13 +75,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       </Button>
 
       {sidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-background/80 backdrop-blur-sm lg:hidden z-30"
           onClick={closeSidebar}
         />
       )}
 
-      <div 
+      <div
         className={cn(
           "glass-darker fixed inset-y-0 left-0 z-40 w-64 transition-transform duration-300 ease-in-out transform lg:translate-x-0 lg:static lg:w-64 lg:min-h-screen flex-shrink-0",
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
@@ -89,14 +89,14 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       >
         <div className="flex flex-col h-full">
           <div className="p-4 border-b border-border/50">
-            <Link 
-              to="/" 
+            <Link
+              to="/"
               className="flex items-center space-x-2 animate-pulse-subtle"
               onClick={closeSidebar}
             >
-              <img 
-                src="/lovable-uploads/48887cda-ca86-4941-9254-053b934dc754.png" 
-                alt="Logo da Biblioteca" 
+              <img
+                src="/lovable-uploads/48887cda-ca86-4941-9254-053b934dc754.png"
+                alt="Logo da Biblioteca"
                 className="h-8 w-8"
               />
               <span className="text-xl font-display font-bold text-foreground">
@@ -146,9 +146,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   </div>
                 </div>
 
-                <Button 
+                <Button
                   variant="outline"
-                  className="w-full flex items-center justify-center" 
+                  className="w-full flex items-center justify-center"
                   onClick={() => {
                     closeSidebar();
                     logout();

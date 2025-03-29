@@ -169,37 +169,6 @@ const Dashboard = () => {
                 )}
               </CardContent>
             </Card>
-
-            <Card className="hover:border-primary/50 transition-colors">
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Book className="h-5 w-5 mr-2" />
-                  Reading Recommendations
-                </CardTitle>
-                <CardDescription>Books you might enjoy based on your history</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 gap-4">
-                  {mockRecentBooks.map(book => (
-                    <Link
-                      to={`/books/${book.id}`}
-                      key={book.id}
-                      className="flex items-center space-x-3 p-2 rounded-md hover:bg-accent transition-colors"
-                    >
-                      <img
-                        src={book.cover}
-                        alt={book.title}
-                        className="h-16 w-12 object-cover rounded-sm shadow-sm"
-                      />
-                      <div className="min-w-0">
-                        <p className="font-medium truncate text-sm">{book.title}</p>
-                        <p className="text-xs text-muted-foreground truncate">{book.author}</p>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
           </div>
         )}
 
@@ -242,92 +211,12 @@ const Dashboard = () => {
               </CardContent>
             </Card>
 
-            <Card className="hover:border-primary/50 transition-colors">
-              <CardHeader>
-                <CardTitle>Popular Categories</CardTitle>
-                <CardDescription>Most borrowed book categories</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {mockStats.popularCategories.map((category, index) => (
-                    <div key={category.name} className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium">{category.name}</span>
-                        <span className="text-sm text-muted-foreground">{category.count} books</span>
-                      </div>
-                      <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-primary rounded-full"
-                          style={{ width: `${(category.count / mockStats.popularCategories[0].count) * 100}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+
           </div>
         )}
 
         {/* Quick actions */}
-        <Card className="hover:border-primary/50 transition-colors">
-          <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-            <CardDescription>Common tasks you might want to perform</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-              <Button variant="outline" className="flex flex-col h-auto py-4" asChild>
-                <Link to="/catalog">
-                  <BookOpen className="h-5 w-5 mb-2" />
-                  <span className="text-sm">Browse Books</span>
-                </Link>
-              </Button>
 
-              {isLibrarian ? (
-                <>
-                  <Button variant="outline" className="flex flex-col h-auto py-4" asChild>
-                    <Link to="/add-book">
-                      <Book className="h-5 w-5 mb-2" />
-                      <span className="text-sm">Add Book</span>
-                    </Link>
-                  </Button>
-
-                  <Button variant="outline" className="flex flex-col h-auto py-4" onClick={() => handleQuickAction('Process Returns')}>
-                    <CheckSquare className="h-5 w-5 mb-2" />
-                    <span className="text-sm">Process Returns</span>
-                  </Button>
-
-                  <Button variant="outline" className="flex flex-col h-auto py-4" onClick={() => handleQuickAction('Overdue Notices')}>
-                    <Clock className="h-5 w-5 mb-2" />
-                    <span className="text-sm">Overdue Notices</span>
-                  </Button>
-
-                  <Button variant="outline" className="flex flex-col h-auto py-4" asChild>
-                    <Link to="/users">
-                      <Users className="h-5 w-5 mb-2" />
-                      <span className="text-sm">Manage Users</span>
-                    </Link>
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Button variant="outline" className="flex flex-col h-auto py-4" asChild>
-                    <Link to="/loans">
-                      <BookCopy className="h-5 w-5 mb-2" />
-                      <span className="text-sm">My Loans</span>
-                    </Link>
-                  </Button>
-
-                  <Button variant="outline" className="flex flex-col h-auto py-4" onClick={() => handleQuickAction('Reading History')}>
-                    <UserRound className="h-5 w-5 mb-2" />
-                    <span className="text-sm">Reading History</span>
-                  </Button>
-                </>
-              )}
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </Layout>
   );

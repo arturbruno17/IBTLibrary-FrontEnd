@@ -38,7 +38,7 @@ export enum LoanStatus {
     // ACTIVE = 'active',
     CANCELED = 'canceled',
     EXTENDED = 'extended',
-    INDAYS= "IN_DAYS",
+    IN_DAYS= "IN_DAYS",
     RETURNED = "RETURNED",
     OVERDUE = "OVERDUE",
 }

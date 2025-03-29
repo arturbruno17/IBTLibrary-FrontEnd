@@ -371,11 +371,9 @@ const Users = () => {
                       <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
                         Função
                       </th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
-                        Membro Desde
-                      </th>
+
                       <th className="px-4 py-3 text-right text-sm font-medium text-muted-foreground">
-                        Ações
+                        {user.role === Role.ADMIN ? "Ações" : ""}
                       </th>
                     </tr>
                   </thead>
@@ -397,12 +395,8 @@ const Users = () => {
                           {getRoleBadge(userItem.role)}
                         </td>
 
-                        <td className="px-4 py-3 text-sm">
-                          {new Date(userItem.createdAt).toLocaleDateString()}
-                        </td>
-
                         <td className="px-4 py-3 text-right">
-                          {canEditUser(userItem.id) && (
+                          {canEditUser(userItem.id.toString()) && (
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" size="sm">
@@ -416,7 +410,7 @@ const Users = () => {
                                 {hasRole(Role.ADMIN) && (
                                   <DropdownMenuItem
                                     onClick={() => {
-                                      setSelectedUserId(userItem.id);
+                                      setSelectedUserId(userItem.id.toString());
                                       setNewRole(userItem.role);
                                       setShowChangeRoleDialog(true);
                                     }}

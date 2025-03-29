@@ -34,7 +34,8 @@ const Navbar: React.FC<NavbarProps> = ({user, logout}) => {
     };
 
     return (
-        <header className="glass-darker sticky top-0 z-20 border-b border-border/50">
+        <header className="glass-darker sticky top-0 z-20 border-b border-border/50 bg-white dark:bg-[#0f0f0f]">
+
             <div className="px-4 lg:px-8 flex h-16 items-center justify-between">
                 {isMobile && (
                     <Link to="/" className="lg:hidden flex items-center space-x-2">
@@ -116,15 +117,6 @@ const Navbar: React.FC<NavbarProps> = ({user, logout}) => {
                                     >
                                         <User className="h-4 w-4 mr-2"/>
                                         Perfil
-                                    </Link>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem asChild>
-                                    <Link
-                                        to="/users"
-                                        className="cursor-pointer flex w-full items-center"
-                                    >
-                                        <User className="h-4 w-4 mr-2"/>
-                                        Usuários
                                     </Link>
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator/>
