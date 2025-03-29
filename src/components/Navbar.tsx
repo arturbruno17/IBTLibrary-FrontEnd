@@ -24,7 +24,7 @@ interface NavbarProps {
 }
 
 const Navbar: React.FC<NavbarProps> = ({user, logout}) => {
-    const [theme, setTheme] = useState<'light' | 'dark';
+    const [theme, setTheme] = useState<'light' | 'dark'>('light');
     const isMobile = useIsMobile();
 
     const toggleTheme = () => {
