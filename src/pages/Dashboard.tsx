@@ -31,33 +31,33 @@ const mockRecentBooks = [
 ];
 
 const mockLoans = [
-  { id: '1', bookTitle: 'The Great Gatsby', dueDate: '2023-06-15', status: 'active' },
-  { id: '2', bookTitle: 'To Kill a Mockingbird', dueDate: '2023-06-22', status: 'active' },
+  { id: '1', bookTitle: 'The Great Gatsby', dueDate: '2023-06-15', status: 'IN_DAYS' },
+  { id: '2', bookTitle: 'To Kill a Mockingbird', dueDate: '2023-06-22', status: 'IN_DAYS' },
   { id: '3', bookTitle: 'Pride and Prejudice', dueDate: '2023-06-10', status: 'overdue' }
 ];
 
 const Dashboard = () => {
   const { user, hasRole } = useAuth();
-  const isLibrarian = hasRole(['librarian', 'admin']);
-  
+  const isLibrarian = hasRole(['LIBRARIAN', 'ADMIN']);
+
   const handleQuickAction = (action: string) => {
     toast.success(`${action} action initiated successfully!`);
   };
-  
+
   return (
     <Layout>
       <div className="space-y-8 animate-fade-in">
         {/* Welcome section */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h1>Welcome, {user?.name}</h1>
+            <h1>Olá, {user?.name}</h1>
             <p className="text-muted-foreground">
-              {isLibrarian 
+              {isLibrarian
                 ? 'Manage your library resources and assist readers'
                 : 'Explore books and manage your loans'}
             </p>
           </div>
-          
+
           {isLibrarian && (
             <div className="flex flex-wrap gap-2">
               <Button asChild>
@@ -73,7 +73,7 @@ const Dashboard = () => {
             </div>
           )}
         </div>
-        
+
         {/* Stats overview */}
         {isLibrarian && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -88,7 +88,7 @@ const Dashboard = () => {
                 </div>
               </CardContent>
             </Card>
-            
+
             <Card className="hover:border-primary/50 transition-colors">
               <CardContent className="p-6 flex items-center justify-between">
                 <div>
@@ -100,7 +100,7 @@ const Dashboard = () => {
                 </div>
               </CardContent>
             </Card>
-            
+
             <Card className="hover:border-primary/50 transition-colors">
               <CardContent className="p-6 flex items-center justify-between">
                 <div>
@@ -112,7 +112,7 @@ const Dashboard = () => {
                 </div>
               </CardContent>
             </Card>
-            
+
             <Card className="hover:border-primary/50 transition-colors">
               <CardContent className="p-6 flex items-center justify-between">
                 <div>
@@ -126,7 +126,7 @@ const Dashboard = () => {
             </Card>
           </div>
         )}
-        
+
         {/* Reader's content */}
         {!isLibrarian && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -169,7 +169,7 @@ const Dashboard = () => {
                 )}
               </CardContent>
             </Card>
-            
+
             <Card className="hover:border-primary/50 transition-colors">
               <CardHeader>
                 <CardTitle className="flex items-center">
@@ -181,14 +181,14 @@ const Dashboard = () => {
               <CardContent>
                 <div className="grid grid-cols-2 gap-4">
                   {mockRecentBooks.map(book => (
-                    <Link 
-                      to={`/books/${book.id}`} 
+                    <Link
+                      to={`/books/${book.id}`}
                       key={book.id}
                       className="flex items-center space-x-3 p-2 rounded-md hover:bg-accent transition-colors"
                     >
-                      <img 
-                        src={book.cover} 
-                        alt={book.title} 
+                      <img
+                        src={book.cover}
+                        alt={book.title}
                         className="h-16 w-12 object-cover rounded-sm shadow-sm"
                       />
                       <div className="min-w-0">
@@ -202,7 +202,7 @@ const Dashboard = () => {
             </Card>
           </div>
         )}
-        
+
         {/* Librarian's content */}
         {isLibrarian && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -227,7 +227,7 @@ const Dashboard = () => {
                           {i % 2 === 0 ? 'Book returned' : 'Book borrowed'}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          {i % 2 === 0 
+                          {i % 2 === 0
                             ? `"${mockRecentBooks[i % 4].title}" was returned by Maria Johnson`
                             : `"${mockRecentBooks[i % 4].title}" was borrowed by John Smith`
                           }
@@ -241,7 +241,7 @@ const Dashboard = () => {
                 </div>
               </CardContent>
             </Card>
-            
+
             <Card className="hover:border-primary/50 transition-colors">
               <CardHeader>
                 <CardTitle>Popular Categories</CardTitle>
@@ -256,7 +256,7 @@ const Dashboard = () => {
                         <span className="text-sm text-muted-foreground">{category.count} books</span>
                       </div>
                       <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
-                        <div 
+                        <div
                           className="h-full bg-primary rounded-full"
                           style={{ width: `${(category.count / mockStats.popularCategories[0].count) * 100}%` }}
                         ></div>
@@ -268,7 +268,7 @@ const Dashboard = () => {
             </Card>
           </div>
         )}
-        
+
         {/* Quick actions */}
         <Card className="hover:border-primary/50 transition-colors">
           <CardHeader>
@@ -283,7 +283,7 @@ const Dashboard = () => {
                   <span className="text-sm">Browse Books</span>
                 </Link>
               </Button>
-              
+
               {isLibrarian ? (
                 <>
                   <Button variant="outline" className="flex flex-col h-auto py-4" asChild>
@@ -292,17 +292,17 @@ const Dashboard = () => {
                       <span className="text-sm">Add Book</span>
                     </Link>
                   </Button>
-                  
+
                   <Button variant="outline" className="flex flex-col h-auto py-4" onClick={() => handleQuickAction('Process Returns')}>
                     <CheckSquare className="h-5 w-5 mb-2" />
                     <span className="text-sm">Process Returns</span>
                   </Button>
-                  
+
                   <Button variant="outline" className="flex flex-col h-auto py-4" onClick={() => handleQuickAction('Overdue Notices')}>
                     <Clock className="h-5 w-5 mb-2" />
                     <span className="text-sm">Overdue Notices</span>
                   </Button>
-                  
+
                   <Button variant="outline" className="flex flex-col h-auto py-4" asChild>
                     <Link to="/users">
                       <Users className="h-5 w-5 mb-2" />
@@ -318,7 +318,7 @@ const Dashboard = () => {
                       <span className="text-sm">My Loans</span>
                     </Link>
                   </Button>
-                  
+
                   <Button variant="outline" className="flex flex-col h-auto py-4" onClick={() => handleQuickAction('Reading History')}>
                     <UserRound className="h-5 w-5 mb-2" />
                     <span className="text-sm">Reading History</span>

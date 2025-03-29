@@ -51,11 +51,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       label: 'Usuários',
       icon: <Users className="h-5 w-5" />,
       href: '/users',
-      roles: [Role.READER, Role.LIBRARIAN, Role.ADMIN],
+      roles: [Role.LIBRARIAN, Role.ADMIN],
     },
   ];
 
-  const filteredNavItems = navItems.filter(item => 
+  const filteredNavItems = navItems.filter(item =>
     item.roles.some(role => user && hasRole(role))
   );
 
@@ -100,7 +100,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 className="h-8 w-8"
               />
               <span className="text-xl font-display font-bold text-foreground">
-                Biblioteca
+                Biblioteca IBT
               </span>
             </Link>
           </div>
@@ -140,8 +140,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">{user.name}</p>
                     <p className="text-xs text-muted-foreground capitalize">
-                      {user.role === 'admin' ? 'Administrador' : 
-                       user.role === 'librarian' ? 'Bibliotecário' : 'Leitor'}
+                      {user.role === 'ADMIN' ? 'Administrador' :
+                       user.role === 'LIBRARIAN' ? 'Bibliotecário' : 'Leitor'}
                     </p>
                   </div>
                 </div>

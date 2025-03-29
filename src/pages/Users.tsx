@@ -1,22 +1,21 @@
-
-import React, { useState, useEffect } from 'react';
-import Layout from '@/components/Layout';
-import { useAuth } from '@/context/AuthContext';
-import { User, Role } from '@/types';
-import { Button } from '@/components/ui/button';
+import React, { useEffect, useState } from "react";
+import Layout from "@/components/Layout";
+import { useAuth } from "@/context/AuthContext";
+import { Role, User } from "@/types";
+import { Button } from "@/components/ui/button";
 import {
+  BookCopy,
+  Check,
+  ChevronDown,
+  Filter,
   Loader2,
   Search,
-  Filter,
-  UserPlus,
-  Shield,
-  ChevronDown,
-  Trash2,
   Settings,
-  Check,
-  BookCopy
-} from 'lucide-react';
-import { Input } from '@/components/ui/input';
+  Shield,
+  Trash2,
+  UserPlus,
+} from "lucide-react";
+import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,9 +24,9 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Badge } from '@/components/ui/badge';
-import { toast } from 'sonner';
+} from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -35,15 +34,15 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -54,137 +53,108 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
+} from "@/components/ui/alert-dialog";
+
+import { usersAPI } from "@/services/api";
+import { mockUsers } from "@/data/mockData";
 
 // Mock data for users
-const mockUsers: User[] = [
-  {
-    id: '1',
-    name: 'João Silva',
-    email: 'joao@exemplo.com',
-    role: Role.READER,
-    createdAt: '2023-01-01T00:00:00Z',
-    updatedAt: '2023-01-01T00:00:00Z'
-  },
-  {
-    id: '2',
-    name: 'Maria Oliveira',
-    email: 'maria@exemplo.com',
-    role: Role.READER,
-    createdAt: '2023-01-02T00:00:00Z',
-    updatedAt: '2023-01-02T00:00:00Z'
-  },
-  {
-    id: '3',
-    name: 'David Santos',
-    email: 'david@exemplo.com',
-    role: Role.READER,
-    createdAt: '2023-01-03T00:00:00Z',
-    updatedAt: '2023-01-03T00:00:00Z'
-  },
-  {
-    id: '4',
-    name: 'Sara Fernandes',
-    email: 'sara@exemplo.com',
-    role: Role.LIBRARIAN,
-    createdAt: '2023-01-04T00:00:00Z',
-    updatedAt: '2023-01-04T00:00:00Z'
-  },
-  {
-    id: '5',
-    name: 'Miguel Castro',
-    email: 'miguel@exemplo.com',
-    role: Role.ADMIN,
-    createdAt: '2023-01-05T00:00:00Z',
-    updatedAt: '2023-01-05T00:00:00Z'
-  }
-];
 
-type UserFilter = 'all' | 'reader' | 'librarian' | 'admin';
+type UserFilter = "all" | "reader" | "librarian" | "admin";
 
 const Users = () => {
   const { user, hasRole } = useAuth();
-  
+
   const [users, setUsers] = useState<User[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filter, setFilter] = useState<UserFilter>('all');
-  
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filter, setFilter] = useState<UserFilter>("all");
+
   // Dialog states
   const [showAddUserDialog, setShowAddUserDialog] = useState(false);
   const [showChangeRoleDialog, setShowChangeRoleDialog] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [newRole, setNewRole] = useState<Role>(Role.READER);
-  
+
   // Form data for new user
   const [newUserData, setNewUserData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    role: Role.READER
+    name: "",
+    email: "",
+    password: "",
+    role: Role.READER,
   });
-  
+
   // Action states
   const [isProcessing, setIsProcessing] = useState(false);
-  
+  const [page, setPage] = useState(0);
+  const [limit] = useState(10);
   // Load users data
+  const fetchUsers = async (search: string = "") => {
+    setLoading(true);
+
+    // Simulate API delay
+    await new Promise((resolve) => setTimeout(resolve, 800));
+    const allUsers = await usersAPI.getAll(page, limit, search);
+    setUsers(allUsers);
+
+    setLoading(false);
+  };
+
   useEffect(() => {
-    const loadUsers = async () => {
-      setLoading(true);
-      
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
-      setUsers(mockUsers);
-      
-      setLoading(false);
-    };
-    
-    loadUsers();
-  }, []);
-  
+    console.log("Fetch users with:", searchQuery);
+    fetchUsers(searchQuery);
+  }, [page]);
+
+
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const query = e.target.value.toLowerCase();
+    setSearchQuery(query);
+    setPage(0); // Reseta a página na nova busca
+    fetchUsers(query);
+  };
+
   // Apply filters and search
   useEffect(() => {
     let result = [...users];
-    
+
     // Apply role filter
-    if (filter !== 'all') {
-      result = result.filter(user => {
-        if (filter === 'reader') return user.role === Role.READER;
-        if (filter === 'librarian') return user.role === Role.LIBRARIAN;
-        if (filter === 'admin') return user.role === Role.ADMIN;
+    if (filter !== "all") {
+      result = result.filter((user) => {
+        if (filter === "reader") return user.role === Role.READER;
+        if (filter === "librarian") return user.role === Role.LIBRARIAN;
+        if (filter === "admin") return user.role === Role.ADMIN;
         return true;
       });
     }
-    
+
     // Apply search
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       result = result.filter(
-        user =>
+        (user) =>
           user.name.toLowerCase().includes(query) ||
           user.email.toLowerCase().includes(query)
       );
     }
-    
+
     setFilteredUsers(result);
   }, [users, filter, searchQuery]);
-  
+
   // Handle adding a new user
   const handleAddUser = async () => {
     const { name, email, password, role } = newUserData;
-    
+
     if (!name || !email || !password) {
-      toast.error('Por favor, preencha todos os campos obrigatórios');
+      toast.error("Por favor, preencha todos os campos obrigatórios");
       return;
     }
-    
+
     setIsProcessing(true);
-    
+
     // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
     // Generate new user
     const newUser: User = {
       id: `new-${Date.now()}`,
@@ -192,128 +162,140 @@ const Users = () => {
       email,
       role,
       createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
     };
-    
-    setUsers(prev => [...prev, newUser]);
-    
+
+    setUsers((prev) => [...prev, newUser]);
+
     toast.success(`Usuário "${name}" adicionado com sucesso`);
-    
+
     // Reset form and close dialog
     setNewUserData({
-      name: '',
-      email: '',
-      password: '',
-      role: Role.READER
+      name: "",
+      email: "",
+      password: "",
+      role: Role.READER,
     });
     setShowAddUserDialog(false);
     setIsProcessing(false);
   };
-  
+
   // Handle changing user role
   const handleChangeRole = async () => {
     if (!selectedUserId || !newRole) {
       return;
     }
-    
+
     // Check if trying to set an admin role
     if (newRole === Role.ADMIN) {
-      toast.error('Não é possível definir um usuário como administrador');
+      toast.error("Não é possível definir um usuário como administrador");
       return;
     }
-    
+
     setIsProcessing(true);
-    
+
     // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 800));
-    
+    await new Promise((resolve) => setTimeout(resolve, 800));
+
     // Update user in state
-    setUsers(prev => 
-      prev.map(user => 
+    setUsers((prev) =>
+      prev.map((user) =>
         user.id === selectedUserId
           ? { ...user, role: newRole, updatedAt: new Date().toISOString() }
           : user
       )
     );
-    
-    const selectedUser = users.find(u => u.id === selectedUserId);
+
+    const selectedUser = users.find((u) => u.id === selectedUserId);
     if (selectedUser) {
-      const roleName = newRole === Role.LIBRARIAN ? 'bibliotecário' : 'leitor';
-      toast.success(`Função de ${selectedUser.name} atualizada para ${roleName}`);
+      const roleName = newRole === Role.LIBRARIAN ? "bibliotecário" : "leitor";
+      toast.success(
+        `Função de ${selectedUser.name} atualizada para ${roleName}`
+      );
     }
-    
+
     setShowChangeRoleDialog(false);
     setIsProcessing(false);
   };
-  
+
   // Handle deleting a user
   const handleDeleteUser = async (userId: string) => {
     setIsProcessing(true);
-    
+
     // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 800));
-    
+    await new Promise((resolve) => setTimeout(resolve, 800));
+
     // Remove user from state
-    const userToDelete = users.find(u => u.id === userId);
-    setUsers(prev => prev.filter(user => user.id !== userId));
-    
+    const userToDelete = users.find((u) => u.id === userId);
+    setUsers((prev) => prev.filter((user) => user.id !== userId));
+
     if (userToDelete) {
       toast.success(`Usuário "${userToDelete.name}" excluído com sucesso`);
     }
-    
+
     setIsProcessing(false);
   };
-  
+
   // Check if user can be edited (only admins can edit other users, users can edit themselves)
   const canEditUser = (userId: string) => {
     return hasRole(Role.ADMIN) || (user && user.id === userId);
   };
-  
+
   // Get role badge for a user
   const getRoleBadge = (role: Role) => {
     switch (role) {
       case Role.ADMIN:
         return (
-          <Badge variant="outline" className="bg-primary/10 text-primary hover:bg-primary/20">
+          <Badge
+            variant="outline"
+            className="bg-primary/10 text-primary hover:bg-primary/20"
+          >
             <Shield className="h-3 w-3 mr-1" />
             Administrador
           </Badge>
         );
       case Role.LIBRARIAN:
         return (
-          <Badge variant="outline" className="bg-green-500/10 text-green-700 hover:bg-green-500/20">
+          <Badge
+            variant="outline"
+            className="bg-green-500/10 text-green-700 hover:bg-green-500/20"
+          >
             <BookCopy className="h-3 w-3 mr-1" />
             Bibliotecário
           </Badge>
         );
       default:
         return (
-          <Badge variant="outline" className="bg-blue-500/10 text-blue-700 hover:bg-blue-500/20">
+          <Badge
+            variant="outline"
+            className="bg-blue-500/10 text-blue-700 hover:bg-blue-500/20"
+          >
             Leitor
           </Badge>
         );
     }
   };
-  
+
   return (
     <Layout>
       <div className="space-y-6 animate-fade-in">
         <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
           <div>
-            <h1>Gerenciamento de Usuários</h1>
+
+            <h1>{Role.READER ? "Usuários" : "Gerenciamento de Usuários"}</h1>
             <p className="text-muted-foreground">
               Gerencie usuários e suas funções
             </p>
           </div>
-          
-          {hasRole(Role.ADMIN) && (
+
+          {hasRole(Role.ADMIN || Role.LIBRARIAN) && (
             <Button onClick={() => setShowAddUserDialog(true)}>
               <UserPlus className="h-4 w-4 mr-2" />
               Adicionar Novo Usuário
             </Button>
           )}
         </div>
-        
+
         {/* Search and filters */}
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
@@ -322,10 +304,10 @@ const Users = () => {
               placeholder="Buscar usuários por nome ou email..."
               className="pl-9"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={handleSearch}
             />
           </div>
-          
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline">
@@ -338,27 +320,27 @@ const Users = () => {
               <DropdownMenuLabel>Filtrar por Função</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuGroup>
-                <DropdownMenuItem onClick={() => setFilter('all')}>
+                <DropdownMenuItem onClick={() => setFilter("all")}>
                   <div className="flex items-center space-x-2">
-                    <Checkbox checked={filter === 'all'} />
+                    <Checkbox checked={filter === "all"} />
                     <span>Todos os Usuários</span>
                   </div>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setFilter('reader')}>
+                <DropdownMenuItem onClick={() => setFilter("reader")}>
                   <div className="flex items-center space-x-2">
-                    <Checkbox checked={filter === 'reader'} />
+                    <Checkbox checked={filter === "reader"} />
                     <span>Leitores</span>
                   </div>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setFilter('librarian')}>
+                <DropdownMenuItem onClick={() => setFilter("librarian")}>
                   <div className="flex items-center space-x-2">
-                    <Checkbox checked={filter === 'librarian'} />
+                    <Checkbox checked={filter === "librarian"} />
                     <span>Bibliotecários</span>
                   </div>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setFilter('admin')}>
+                <DropdownMenuItem onClick={() => setFilter("admin")}>
                   <div className="flex items-center space-x-2">
-                    <Checkbox checked={filter === 'admin'} />
+                    <Checkbox checked={filter === "admin"} />
                     <span>Administradores</span>
                   </div>
                 </DropdownMenuItem>
@@ -366,7 +348,7 @@ const Users = () => {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-        
+
         {/* Users list */}
         {loading ? (
           <div className="flex flex-col items-center justify-center py-12">
@@ -380,11 +362,21 @@ const Users = () => {
                 <table className="w-full">
                   <thead className="bg-muted/50">
                     <tr>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Usuário</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Email</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Função</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Membro Desde</th>
-                      <th className="px-4 py-3 text-right text-sm font-medium text-muted-foreground">Ações</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
+                        Usuário
+                      </th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
+                        Email
+                      </th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
+                        Função
+                      </th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
+                        Membro Desde
+                      </th>
+                      <th className="px-4 py-3 text-right text-sm font-medium text-muted-foreground">
+                        Ações
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y">
@@ -398,19 +390,17 @@ const Users = () => {
                             <span className="font-medium">{userItem.name}</span>
                           </div>
                         </td>
-                        
-                        <td className="px-4 py-3 text-sm">
-                          {userItem.email}
-                        </td>
-                        
+
+                        <td className="px-4 py-3 text-sm">{userItem.email}</td>
+
                         <td className="px-4 py-3 text-sm">
                           {getRoleBadge(userItem.role)}
                         </td>
-                        
+
                         <td className="px-4 py-3 text-sm">
                           {new Date(userItem.createdAt).toLocaleDateString()}
                         </td>
-                        
+
                         <td className="px-4 py-3 text-right">
                           {canEditUser(userItem.id) && (
                             <DropdownMenu>
@@ -453,20 +443,30 @@ const Users = () => {
                                     </AlertDialogTrigger>
                                     <AlertDialogContent>
                                       <AlertDialogHeader>
-                                        <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
+                                        <AlertDialogTitle>
+                                          Tem certeza?
+                                        </AlertDialogTitle>
                                         <AlertDialogDescription>
-                                          Isso excluirá permanentemente o usuário "{userItem.name}" e todos os dados associados.
-                                          Esta ação não pode ser desfeita.
+                                          Isso excluirá permanentemente o
+                                          usuário "{userItem.name}" e todos os
+                                          dados associados. Esta ação não pode
+                                          ser desfeita.
                                         </AlertDialogDescription>
                                       </AlertDialogHeader>
                                       <AlertDialogFooter>
-                                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                        <AlertDialogCancel>
+                                          Cancelar
+                                        </AlertDialogCancel>
                                         <AlertDialogAction
                                           className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                          onClick={() => handleDeleteUser(userItem.id)}
+                                          onClick={() =>
+                                            handleDeleteUser(userItem.id)
+                                          }
                                           disabled={isProcessing}
                                         >
-                                          {isProcessing ? 'Excluindo...' : 'Excluir'}
+                                          {isProcessing
+                                            ? "Excluindo..."
+                                            : "Excluir"}
                                         </AlertDialogAction>
                                       </AlertDialogFooter>
                                     </AlertDialogContent>
@@ -486,16 +486,21 @@ const Users = () => {
                 <div className="h-16 w-16 bg-muted rounded-full flex items-center justify-center mb-4">
                   <Search className="h-8 w-8 text-muted-foreground" />
                 </div>
-                <h3 className="text-lg font-medium">Nenhum usuário encontrado</h3>
+                <h3 className="text-lg font-medium">
+                  Nenhum usuário encontrado
+                </h3>
                 <p className="text-muted-foreground mb-4">
-                  {searchQuery || filter !== 'all'
-                    ? 'Tente ajustar sua busca ou filtros'
-                    : 'Nenhum usuário foi adicionado ainda'}
+                  {searchQuery || filter !== "all"
+                    ? "Tente ajustar sua busca ou filtros"
+                    : "Nenhum usuário foi adicionado ainda"}
                 </p>
-                <Button variant="outline" onClick={() => {
-                  setSearchQuery('');
-                  setFilter('all');
-                }}>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setSearchQuery("");
+                    setFilter("all");
+                  }}
+                >
                   Ver todos os usuários
                 </Button>
               </div>
@@ -503,7 +508,7 @@ const Users = () => {
           </>
         )}
       </div>
-      
+
       {/* Add user dialog */}
       <Dialog open={showAddUserDialog} onOpenChange={setShowAddUserDialog}>
         <DialogContent>
@@ -513,7 +518,7 @@ const Users = () => {
               Crie uma nova conta de usuário com função específica
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <label htmlFor="name" className="text-sm font-medium">
@@ -522,12 +527,14 @@ const Users = () => {
               <Input
                 id="name"
                 value={newUserData.name}
-                onChange={(e) => setNewUserData({...newUserData, name: e.target.value})}
+                onChange={(e) =>
+                  setNewUserData({ ...newUserData, name: e.target.value })
+                }
                 placeholder="João Silva"
                 required
               />
             </div>
-            
+
             <div className="space-y-2">
               <label htmlFor="email" className="text-sm font-medium">
                 Email
@@ -536,12 +543,14 @@ const Users = () => {
                 id="email"
                 type="email"
                 value={newUserData.email}
-                onChange={(e) => setNewUserData({...newUserData, email: e.target.value})}
+                onChange={(e) =>
+                  setNewUserData({ ...newUserData, email: e.target.value })
+                }
                 placeholder="joao.silva@exemplo.com"
                 required
               />
             </div>
-            
+
             <div className="space-y-2">
               <label htmlFor="password" className="text-sm font-medium">
                 Senha
@@ -550,43 +559,48 @@ const Users = () => {
                 id="password"
                 type="password"
                 value={newUserData.password}
-                onChange={(e) => setNewUserData({...newUserData, password: e.target.value})}
+                onChange={(e) =>
+                  setNewUserData({ ...newUserData, password: e.target.value })
+                }
                 placeholder="••••••••"
                 required
               />
             </div>
-            
+
             <div className="space-y-2">
               <label htmlFor="role" className="text-sm font-medium">
                 Função
               </label>
-              <Select 
-                value={newUserData.role} 
-                onValueChange={(value) => setNewUserData({...newUserData, role: value as Role})}
+              <Select
+                value={newUserData.role}
+                onValueChange={(value) =>
+                  setNewUserData({ ...newUserData, role: value as Role })
+                }
               >
                 <SelectTrigger id="role">
                   <SelectValue placeholder="Selecione uma função" />
                 </SelectTrigger>
                 <SelectContent>
+                  {user.role === Role.ADMIN && (
+                    <SelectItem value={Role.LIBRARIAN}>
+                      Bibliotecário
+                    </SelectItem>
+                  )}
                   <SelectItem value={Role.READER}>Leitor</SelectItem>
-                  <SelectItem value={Role.LIBRARIAN}>Bibliotecário</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
-          
+
           <DialogFooter>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => setShowAddUserDialog(false)}
               disabled={isProcessing}
             >
               Cancelar
             </Button>
-            <Button 
-              onClick={handleAddUser}
-              disabled={isProcessing}
-            >
+            <Button onClick={handleAddUser} disabled={isProcessing}>
               {isProcessing ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -602,9 +616,12 @@ const Users = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      
+
       {/* Change role dialog */}
-      <Dialog open={showChangeRoleDialog} onOpenChange={setShowChangeRoleDialog}>
+      <Dialog
+        open={showChangeRoleDialog}
+        onOpenChange={setShowChangeRoleDialog}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Alterar Função do Usuário</DialogTitle>
@@ -612,14 +629,14 @@ const Users = () => {
               Atualizar a função e permissões do usuário
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <label htmlFor="change-role" className="text-sm font-medium">
                 Função
               </label>
-              <Select 
-                value={newRole} 
+              <Select
+                value={newRole}
                 onValueChange={(value) => setNewRole(value as Role)}
               >
                 <SelectTrigger id="change-role">
@@ -630,39 +647,41 @@ const Users = () => {
                   <SelectItem value={Role.LIBRARIAN}>Bibliotecário</SelectItem>
                 </SelectContent>
               </Select>
-              
+
               <div className="mt-4 space-y-3 text-sm">
                 <div className="flex items-start space-x-3">
                   <Check className="h-4 w-4 mt-0.5 text-green-600" />
                   <div>
                     <p className="font-medium">Leitor</p>
-                    <p className="text-muted-foreground">Pode visualizar o catálogo e gerenciar empréstimos pessoais</p>
+                    <p className="text-muted-foreground">
+                      Pode visualizar o catálogo e gerenciar empréstimos
+                      pessoais
+                    </p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-start space-x-3">
                   <Check className="h-4 w-4 mt-0.5 text-green-600" />
                   <div>
                     <p className="font-medium">Bibliotecário</p>
-                    <p className="text-muted-foreground">Pode gerenciar livros e empréstimos para todos os usuários</p>
+                    <p className="text-muted-foreground">
+                      Pode gerenciar livros e empréstimos para todos os usuários
+                    </p>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-          
+
           <DialogFooter>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => setShowChangeRoleDialog(false)}
               disabled={isProcessing}
             >
               Cancelar
             </Button>
-            <Button 
-              onClick={handleChangeRole}
-              disabled={isProcessing}
-            >
+            <Button onClick={handleChangeRole} disabled={isProcessing}>
               {isProcessing ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -678,6 +697,25 @@ const Users = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+       <div className="flex justify-center mt-8 space-x-2">
+              <Button
+                variant="outline"
+                disabled={page === 0}
+                onClick={() => setPage((p) => p - 1)}
+              >
+                Anterior
+              </Button>
+              <span className="px-4 py-2 text-sm text-muted-foreground">
+                Página {page + 1}
+              </span>
+              <Button
+                variant="outline"
+                disabled={filteredUsers.length < limit}
+                onClick={() => setPage((p) => p + 1)}
+              >
+                Próxima
+              </Button>
+            </div>
     </Layout>
   );
 };

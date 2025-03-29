@@ -90,10 +90,7 @@ const Login = () => {
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
         <Card className="w-full max-w-md animate-slide-in-up">
           <CardHeader>
-            <CardTitle className="text-2xl">Welcome back</CardTitle>
-            <CardDescription>
-              Enter your credentials to access your account
-            </CardDescription>
+            <CardTitle className="text-2xl">Bem vindo de volta</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -117,15 +114,15 @@ const Login = () => {
               </div>
               
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="password">Password</Label>
-                  <Link 
-                    to="/forgot-password" 
-                    className="text-xs text-primary hover:underline"
-                  >
-                    Forgot password?
-                  </Link>
-                </div>
+                {/*<div className="flex items-center justify-between">*/}
+                {/*  <Label htmlFor="password">Senha</Label>*/}
+                {/*  <Link */}
+                {/*    to="/forgot-password" */}
+                {/*    className="text-xs text-primary hover:underline"*/}
+                {/*  >*/}
+                {/*    Esqueceu a senha?*/}
+                {/*  </Link>*/}
+                {/*</div>*/}
                 <div className="relative">
                   <Input
                     id="password"
@@ -157,34 +154,34 @@ const Login = () => {
                 className="w-full"
                 disabled={isLoading}
               >
-                {isLoading ? 'Signing in...' : 'Sign in'}
+                {isLoading ? 'Entrando...' : 'Entrar'}
               </Button>
             </form>
             
-            <div className="mt-6">
-              <p className="text-sm text-center text-muted-foreground">
-                Demo Accounts
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-2">
-                {demoUsers.map((user) => (
-                  <Button
-                    key={user.role}
-                    variant="outline"
-                    size="sm"
-                    onClick={() => loginAsUser(user.email, user.password)}
-                    className="text-xs"
-                  >
-                    {user.role} Account
-                  </Button>
-                ))}
-              </div>
-            </div>
+            {/*<div className="mt-6">*/}
+            {/*  <p className="text-sm text-center text-muted-foreground">*/}
+            {/*    Demo Accounts*/}
+            {/*  </p>*/}
+            {/*  <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-2">*/}
+            {/*    {demoUsers.map((user) => (*/}
+            {/*      <Button*/}
+            {/*        key={user.role}*/}
+            {/*        variant="outline"*/}
+            {/*        size="sm"*/}
+            {/*        onClick={() => loginAsUser(user.email, user.password)}*/}
+            {/*        className="text-xs"*/}
+            {/*      >*/}
+            {/*        {user.role} Account*/}
+            {/*      </Button>*/}
+            {/*    ))}*/}
+            {/*  </div>*/}
+            {/*</div>*/}
           </CardContent>
           <CardFooter className="flex justify-center">
             <p className="text-sm text-muted-foreground">
-              Don't have an account?{' '}
+             Não tem uma conta?{' '}
               <Link to="/register" className="text-primary hover:underline">
-                Create an account
+                Criar conta
               </Link>
             </p>
           </CardFooter>

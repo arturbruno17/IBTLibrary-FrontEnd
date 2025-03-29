@@ -21,21 +21,19 @@ import { Book, Role } from '@/types';
 import BarcodeScanner from '@/components/BarcodeScanner';
 import { parseOpenLibraryBook, searchByISBN } from '@/services/openLibraryApi';
 import { mockBooks } from '@/data/mockData';
+import { booksAPI } from '@/services/api';
 
 interface BookFormData {
   title: string;
   author: string;
   isbn: string;
-  publisher: string;
-  publishedYear: string;
-  description: string;
   quantity: number;
 }
 
 const AddBook = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { hasRole } = useAuth();
+  const { hasRole,  } = useAuth();
   
   const isEditMode = !!id;
   
@@ -43,9 +41,6 @@ const AddBook = () => {
     title: '',
     author: '',
     isbn: '',
-    publisher: '',
-    publishedYear: '',
-    description: '',
     quantity: 1
   });
   
@@ -70,9 +65,6 @@ const AddBook = () => {
             title: book.title,
             author: book.author,
             isbn: book.isbn,
-            publisher: book.publisher || '',
-            publishedYear: book.publishedYear ? book.publishedYear.toString() : '',
-            description: book.description || '',
             quantity: book.quantity
           });
         } else {
@@ -119,9 +111,6 @@ const AddBook = () => {
           title: parsedBook.title || '',
           author: parsedBook.author || '',
           isbn: parsedBook.isbn || isbn,
-          publisher: parsedBook.publisher || '',
-          publishedYear: parsedBook.publishedYear ? parsedBook.publishedYear.toString() : '',
-          description: parsedBook.description || '',
           quantity: formData.quantity
         });
         
@@ -147,65 +136,31 @@ const AddBook = () => {
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Validate form
+
     if (!formData.title || !formData.author || !formData.isbn) {
       toast.error('Por favor, preencha todos os campos obrigatórios');
       return;
     }
-    
+
     setSubmitting(true);
-    
+
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Create a new book to add to the mockBooks array
       if (!isEditMode) {
-        const newBook: Book = {
-          id: (mockBooks.length + 1).toString(),
+        // Chama a API de criação de livro
+        await booksAPI.create({
           title: formData.title,
           author: formData.author,
           isbn: formData.isbn,
-          publisher: formData.publisher,
-          publishedYear: formData.publishedYear ? parseInt(formData.publishedYear) : undefined,
-          description: formData.description,
           quantity: formData.quantity,
-          availableQuantity: formData.quantity,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        };
-        
-        // Add the new book to the global mockBooks array
-        mockBooks.push(newBook);
-        
+        });
+
         toast.success(`Livro "${formData.title}" adicionado com sucesso`);
-        console.log('Livro adicionado:', newBook);
-        console.log('Lista de livros atualizada:', mockBooks);
       } else {
-        // Find and update the book
-        const bookIndex = mockBooks.findIndex(b => b.id === id);
-        if (bookIndex >= 0) {
-          mockBooks[bookIndex] = {
-            ...mockBooks[bookIndex],
-            title: formData.title,
-            author: formData.author,
-            isbn: formData.isbn,
-            publisher: formData.publisher,
-            publishedYear: formData.publishedYear ? parseInt(formData.publishedYear) : undefined,
-            description: formData.description,
-            quantity: formData.quantity,
-            updatedAt: new Date().toISOString()
-          };
-          
-          toast.success(`Livro "${formData.title}" atualizado com sucesso`);
-        }
+        // Aqui você pode adicionar booksAPI.update quando criar essa função
+        toast.error('Modo de edição ainda não implementado com API');
       }
-      
-      // Redirect to catalog page after successful submission
-      setTimeout(() => {
-        navigate('/catalog');
-      }, 1000);
+
+      navigate('/catalog');
     } catch (error) {
       console.error('Erro ao enviar formulário:', error);
       toast.error('Ocorreu um erro ao salvar o livro');
@@ -213,7 +168,8 @@ const AddBook = () => {
       setSubmitting(false);
     }
   };
-  
+
+
   if (loading) {
     return (
       <Layout>
@@ -329,28 +285,28 @@ const AddBook = () => {
                   />
                 </div>
                 
-                <div className="space-y-2">
-                  <Label htmlFor="publisher">Editora</Label>
-                  <Input
-                    id="publisher"
-                    name="publisher"
-                    value={formData.publisher}
-                    onChange={handleChange}
-                    placeholder="Nome da editora"
-                  />
-                </div>
+                {/*<div className="space-y-2">*/}
+                {/*  <Label htmlFor="publisher">Editora</Label>*/}
+                {/*  <Input*/}
+                {/*    id="publisher"*/}
+                {/*    name="publisher"*/}
+                {/*    value={formData.publisher}*/}
+                {/*    onChange={handleChange}*/}
+                {/*    placeholder="Nome da editora"*/}
+                {/*  />*/}
+                {/*</div>*/}
                 
-                <div className="space-y-2">
-                  <Label htmlFor="publishedYear">Ano de Publicação</Label>
-                  <Input
-                    id="publishedYear"
-                    name="publishedYear"
-                    value={formData.publishedYear}
-                    onChange={handleChange}
-                    placeholder="Ano de publicação"
-                    type="number"
-                  />
-                </div>
+                {/*<div className="space-y-2">*/}
+                {/*  <Label htmlFor="publishedYear">Ano de Publicação</Label>*/}
+                {/*  <Input*/}
+                {/*    id="publishedYear"*/}
+                {/*    name="publishedYear"*/}
+                {/*    value={formData.publishedYear}*/}
+                {/*    onChange={handleChange}*/}
+                {/*    placeholder="Ano de publicação"*/}
+                {/*    type="number"*/}
+                {/*  />*/}
+                {/*</div>*/}
                 
                 <div className="space-y-2">
                   <Label htmlFor="quantity">Quantidade</Label>
@@ -386,19 +342,19 @@ const AddBook = () => {
               </div>
               
               {/* Right column */}
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="description">Descrição</Label>
-                  <Textarea
-                    id="description"
-                    name="description"
-                    value={formData.description}
-                    onChange={handleChange}
-                    placeholder="Descrição do livro"
-                    rows={12}
-                  />
-                </div>
-              </div>
+              {/*<div className="space-y-4">*/}
+              {/*  <div className="space-y-2">*/}
+              {/*    <Label htmlFor="description">Descrição</Label>*/}
+              {/*    <Textarea*/}
+              {/*      id="description"*/}
+              {/*      name="description"*/}
+              {/*      value={formData.description}*/}
+              {/*      onChange={handleChange}*/}
+              {/*      placeholder="Descrição do livro"*/}
+              {/*      rows={12}*/}
+              {/*    />*/}
+              {/*  </div>*/}
+              {/*</div>*/}
             </div>
             
             {/* Form actions */}

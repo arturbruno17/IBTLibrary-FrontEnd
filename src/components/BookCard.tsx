@@ -11,10 +11,10 @@ interface BookCardProps {
 }
 
 const BookCard: React.FC<BookCardProps> = ({ book, className }) => {
-  const isAvailable = book.availableQuantity > 0;
-  
+  const isAvailable = book.available;
+
   return (
-    <div 
+    <div
       className={cn(
         "book-card overflow-hidden rounded-lg border bg-card text-card-foreground shadow-sm",
         className
@@ -24,9 +24,9 @@ const BookCard: React.FC<BookCardProps> = ({ book, className }) => {
         <div className="p-4">
           <h3 className="font-medium leading-tight line-clamp-2">{book.title}</h3>
           <p className="text-sm text-muted-foreground mt-1 line-clamp-1">{book.author}</p>
-          
+
           <div className="mt-2 text-xs text-muted-foreground flex items-center justify-between">
-            <Badge 
+            <Badge
               className={cn(
                 isAvailable ? "bg-green-500" : "bg-destructive"
               )}

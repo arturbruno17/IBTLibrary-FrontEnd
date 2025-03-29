@@ -95,10 +95,7 @@ const Register = () => {
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
         <Card className="w-full max-w-md animate-slide-in-up">
           <CardHeader>
-            <CardTitle className="text-2xl">Create an account</CardTitle>
-            <CardDescription>
-              Enter your information to create your account
-            </CardDescription>
+            <CardTitle className="text-2xl">Crie sua conta</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -109,7 +106,7 @@ const Register = () => {
               )}
               
               <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
+                <Label htmlFor="name">Nome completo</Label>
                 <Input
                   id="name"
                   type="text"
@@ -135,7 +132,7 @@ const Register = () => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password">Senha</Label>
                 <div className="relative">
                   <Input
                     id="password"
@@ -163,7 +160,7 @@ const Register = () => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <Label htmlFor="confirmPassword">Confirmar Senha</Label>
                 <Input
                   id="confirmPassword"
                   type={showPassword ? 'text' : 'password'}
@@ -174,37 +171,20 @@ const Register = () => {
                   autoComplete="new-password"
                 />
               </div>
-              
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="librarian" 
-                  checked={asLibrarian}
-                  onCheckedChange={(checked) => setAsLibrarian(checked === true)}
-                />
-                <label
-                  htmlFor="librarian"
-                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                >
-                  Register as Librarian (Demo Only)
-                </label>
-              </div>
-              
+
               <Button
                 type="submit"
                 className="w-full"
                 disabled={isLoading}
               >
-                {isLoading ? 'Creating account...' : 'Create account'}
+                {isLoading ? 'Criando conta...' : 'Criar conta'}
               </Button>
-              
-              <p className="text-xs text-muted-foreground mt-2">
-                By creating an account, you agree to our Terms of Service and Privacy Policy.
-              </p>
+
             </form>
           </CardContent>
           <CardFooter className="flex justify-center">
             <p className="text-sm text-muted-foreground">
-              Already have an account?{' '}
+              Já tem uma conta?{' '}
               <Link to="/login" className="text-primary hover:underline">
                 Sign in
               </Link>
