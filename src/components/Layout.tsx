@@ -95,7 +95,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               onClick={closeSidebar}
             >
               <img
-                src="/lovable-uploads/48887cda-ca86-4941-9254-053b934dc754.png"
+                src="/lovable-uploads/logoIBT.png"
                 alt="Logo da Biblioteca"
                 className="h-8 w-8"
               />

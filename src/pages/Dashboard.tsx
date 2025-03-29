@@ -57,21 +57,6 @@ const Dashboard = () => {
                 : 'Explore books and manage your loans'}
             </p>
           </div>
-
-          {isLibrarian && (
-            <div className="flex flex-wrap gap-2">
-              <Button asChild>
-                <Link to="/add-book">
-                  <Book className="h-4 w-4 mr-2" />
-                  Add New Book
-                </Link>
-              </Button>
-              <Button variant="outline" onClick={() => handleQuickAction('Manage loans')}>
-                <BookCopy className="h-4 w-4 mr-2" />
-                Manage Loans
-              </Button>
-            </div>
-          )}
         </div>
 
         {/* Stats overview */}
