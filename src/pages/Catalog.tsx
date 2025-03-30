@@ -4,10 +4,9 @@ import Layout from "@/components/Layout";
 import BookCard from "@/components/BookCard";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Plus, BookOpen } from "lucide-react";
+import { Search, Plus, BookOpen, Loader2 } from "lucide-react";
 import { Book, Role } from "@/types";
 import { useAuth } from "@/context/AuthContext";
-import { mockBooks } from "@/data/mockData";
 import { booksAPI } from "@/services/api.ts";
 
 const Catalog = () => {
@@ -20,11 +19,10 @@ const Catalog = () => {
   const [page, setPage] = useState(0);
   const [limit] = useState(12);
 
-  // Fetch books function
   const fetchBooks = async (search: string = "") => {
     setLoading(true);
-
     try {
+      await new Promise((resolve) => setTimeout(resolve, 800));
       const response = await booksAPI.getAll(page, limit, search);
       setBooks(response);
       setFilteredBooks(response);
@@ -35,26 +33,24 @@ const Catalog = () => {
     }
   };
 
-  // Load books
-
-  useEffect(() => {
-    fetchBooks(searchQuery);
-  }, [page]);
-
-  // Handle search
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value.toLowerCase();
     setSearchQuery(query);
-    setPage(0); // Reseta a página na nova busca
-    fetchBooks(query);
+    setPage(0);
   };
+
+  useEffect(() => {
+    const delayDebounce = setTimeout(() => {
+      fetchBooks(searchQuery);
+    }, 400);
+    return () => clearTimeout(delayDebounce);
+  }, [searchQuery, page]);
 
   return (
     <Layout>
       <div className="animate-fade-in">
         <div className="flex justify-between items-center mb-6">
           <h1>Catálogo de Livros</h1>
-
           {hasRole([Role.LIBRARIAN, Role.ADMIN]) && (
             <Button onClick={() => navigate("/add-book")}>
               <Plus className="h-4 w-4 mr-2" />
@@ -74,17 +70,11 @@ const Catalog = () => {
           />
         </div>
 
+        {/* Loader estilo Users */}
         {loading ? (
-          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-            {[...Array(8)].map((_, i) => (
-              <div
-                key={i}
-                className="border rounded-lg p-4 h-[160px] animate-pulse flex flex-col"
-              >
-                <div className="w-3/4 h-4 bg-slate-200 rounded mb-2" />
-                <div className="w-1/2 h-3 bg-slate-200 rounded" />
-              </div>
-            ))}
+          <div className="flex flex-col items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
+            <p className="text-muted-foreground">Carregando livros...</p>
           </div>
         ) : filteredBooks.length > 0 ? (
           <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
@@ -105,25 +95,26 @@ const Catalog = () => {
             </p>
           </div>
         )}
-      </div>
-      <div className="flex justify-center mt-8 space-x-2">
-        <Button
-          variant="outline"
-          disabled={page === 0}
-          onClick={() => setPage((p) => p - 1)}
-        >
-          Anterior
-        </Button>
-        <span className="px-4 py-2 text-sm text-muted-foreground">
-          Página {page + 1}
-        </span>
-        <Button
-          variant="outline"
-          disabled={filteredBooks.length < limit}
-          onClick={() => setPage((p) => p + 1)}
-        >
-          Próxima
-        </Button>
+
+        <div className="flex justify-center mt-8 space-x-2">
+          <Button
+            variant="outline"
+            disabled={page === 0}
+            onClick={() => setPage((p) => p - 1)}
+          >
+            Anterior
+          </Button>
+          <span className="px-4 py-2 text-sm text-muted-foreground">
+            Página {page + 1}
+          </span>
+          <Button
+            variant="outline"
+            disabled={filteredBooks.length < limit}
+            onClick={() => setPage((p) => p + 1)}
+          >
+            Próxima
+          </Button>
+        </div>
       </div>
     </Layout>
   );

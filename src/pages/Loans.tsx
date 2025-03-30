@@ -3,6 +3,8 @@ import Layout from "@/components/Layout";
 import { useAuth } from "@/context/AuthContext";
 import { Loan, LoanStatus, Book, User, Role } from "@/types";
 import { Button } from "@/components/ui/button";
+import ReactSelect from "react-select";
+
 import {
   Loader2,
   Search,
@@ -50,7 +52,7 @@ import { Label } from "@/components/ui/label";
 import { mockBooks, mockUsers } from "@/data/mockData";
 import { booksAPI, usersAPI, loansAPI } from "@/services/api";
 
-type LoanFilter = "all" | "IN_DAYS" | "RETURNED" | "OVERDUE";
+type LoanFilter = "all" | LoanStatus;
 
 const Loans = () => {
   const { user, hasRole, loading: authLoading } = useAuth();
@@ -60,11 +62,12 @@ const Loans = () => {
   const [filteredLoans, setFilteredLoans] = useState<Loan[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [filter, setFilter] = useState<LoanFilter>("all");
+  const [filter, setFilter] = useState<LoanStatus[]>([]);
   const [availableBooks, setAvailableBooks] = useState<Book[]>([]);
   const [availableUsers, setAvailableUsers] = useState<User[]>([]);
 
   const [showLoanDialog, setShowLoanDialog] = useState(false);
+  const [showFilterDialog, setShowFilterDialog] = useState(false);
   const [selectedBook, setSelectedBook] = useState<string>("");
   const [selectedUser, setSelectedUser] = useState<string>("");
   const [creatingLoan, setCreatingLoan] = useState(false);
@@ -74,6 +77,11 @@ const Loans = () => {
   const currentRequest = useRef(0);
 
   const [processingLoanId, setProcessingLoanId] = useState<number | null>(null);
+  const ALL_STATUSES: LoanStatus[] = [
+    LoanStatus.IN_DAYS,
+    LoanStatus.RETURNED,
+    LoanStatus.OVERDUE,
+  ];
 
   const fetchAllBooks = async (): Promise<Book[]> => {
     let allBooks: Book[] = [];
@@ -109,11 +117,31 @@ const Loans = () => {
     console.log("Auth loading:", user.id);
   }, [authLoading]);
 
+  //   useEffect(() => {
+  //     let result = [...loans];
+
+  //     if (filter !== "all") {
+  //       result = result.filter((loan) => deriveLoanStatus(loan) === filter);
+  //     }
+
+  //     if (searchQuery.trim()) {
+  //       const query = searchQuery.toLowerCase();
+  //       result = result.filter(
+  //         (loan) =>
+  //           loan.book?.title.toLowerCase().includes(query) ||
+  //           loan.book?.author.toLowerCase().includes(query) ||
+  //           loan.person?.name.toLowerCase().includes(query)
+  //       );
+  //     }
+
+  //     setFilteredLoans(result);
+  //   }, [loans, searchQuery, filter]);
+
   useEffect(() => {
     let result = [...loans];
 
-    if (filter !== "all") {
-      result = result.filter((loan) => deriveLoanStatus(loan) === filter);
+    if (filter.length > 0) {
+      result = result.filter((loan) => filter.includes(deriveLoanStatus(loan)));
     }
 
     if (searchQuery.trim()) {
@@ -145,14 +173,19 @@ const Loans = () => {
       const filters: {
         page: number;
         limit: number;
-        types?: LoanStatus;
+        types?: string;
+        person_id?: string;
+        book_id?: string;
       } = {
         page,
         limit,
       };
+      if (filter.length > 0) filters.types = filter.join(",");
+      if (selectedUser) filters.person_id = selectedUser;
+      if (selectedBook) filters.book_id = selectedBook;
 
-      if (filter !== "all") {
-        filters.types = filter as LoanStatus;
+      if (filter.length > 0) {
+        filters.types = filter.join(","); // Ex: "IN_DAYS,RETURNED"
       }
 
       const fetched = await loansAPI.getAllLoans(filters);
@@ -174,6 +207,35 @@ const Loans = () => {
     }
   }, [isLibrarianOrAdmin, user?.id, page, filter]);
 
+  //   useEffect(() => {
+  //     const loadBooksAndUsers = async () => {
+  //       try {
+  //         const [books, users] = await Promise.all([
+  //           booksAPI.getAll(0, 5000),
+  //           usersAPI.getAll(0, 5000),
+  //         ]);
+
+  //         const available = books.filter((book) => book.quantity > 0);
+  //         const readers = users.filter(
+  //           (user) => user.role === Role.READER || Role.LIBRARIAN
+  //         );
+
+  //         setAvailableBooks(available);
+  //         setAvailableUsers(readers);
+
+  //         console.log("Available books from API:", available);
+  //         console.log("Available users from API:", readers);
+  //       } catch (error) {
+  //         toast.error("Erro ao carregar livros ou usuários");
+  //         console.error("Erro ao buscar dados:", error);
+  //       }
+  //     };
+
+  //     if (showLoanDialog) {
+  //       loadBooksAndUsers();
+  //     }
+  //   }, [showLoanDialog]);
+
   useEffect(() => {
     const loadBooksAndUsers = async () => {
       try {
@@ -183,25 +245,17 @@ const Loans = () => {
         ]);
 
         const available = books.filter((book) => book.quantity > 0);
-        const readers = users.filter(
-          (user) => user.role === Role.READER || Role.LIBRARIAN
-        );
 
         setAvailableBooks(available);
-        setAvailableUsers(readers);
-
-        console.log("Available books from API:", available);
-        console.log("Available users from API:", readers);
+        setAvailableUsers(users); // 👈 agora pega todos
       } catch (error) {
         toast.error("Erro ao carregar livros ou usuários");
         console.error("Erro ao buscar dados:", error);
       }
     };
 
-    if (showLoanDialog) {
-      loadBooksAndUsers();
-    }
-  }, [showLoanDialog]);
+    loadBooksAndUsers();
+  }, []);
 
   useEffect(() => {
     if (!searchQuery.trim()) {
@@ -224,7 +278,29 @@ const Loans = () => {
     console.log("Loans carregados da API:", loans);
   }, [loans]);
 
-  const handleCreateLoan = async () => {
+//   const handleCreateLoan = async () => {
+//     if (!selectedBook || !selectedUser) {
+//       toast.error("Please select both a book and a user");
+//       return;
+//     }
+
+//     setCreatingLoan(true);
+
+//     try {
+//       await loansAPI.create(selectedBook, selectedUser);
+//       await loadLoans();
+//       toast.success("Loan created successfully!");
+//       setShowLoanDialog(false);
+//       setSelectedBook("");
+//       setSelectedUser("");
+//     } catch (error) {
+//       console.error("Error creating loan:", error);
+//       toast.error("Failed to create loan.");
+//     } finally {
+//       setCreatingLoan(false);
+//     }
+//   };
+const handleCreateLoan = async () => {
     if (!selectedBook || !selectedUser) {
       toast.error("Please select both a book and a user");
       return;
@@ -233,8 +309,11 @@ const Loans = () => {
     setCreatingLoan(true);
 
     try {
-      await loansAPI.create(selectedBook, selectedUser);
-      await loadLoans();
+      const createdLoan = await loansAPI.create(selectedBook, selectedUser);
+
+      // Adiciona o novo empréstimo ao final da lista existente
+      setLoans((prev) => [...prev, createdLoan]);
+
       toast.success("Loan created successfully!");
       setShowLoanDialog(false);
       setSelectedBook("");
@@ -403,15 +482,21 @@ const Loans = () => {
           </div>
 
           {isLibrarianOrAdmin && (
-            <Button onClick={() => setShowLoanDialog(true)}>
-              <BookCopy className="h-4 w-4 mr-2" />
-              Emitir novo empréstimo
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Button onClick={() => setShowLoanDialog(true)}>
+                <BookCopy className="h-4 w-4 mr-2" />
+                Emitir novo empréstimo
+              </Button>
+            </div>
           )}
+            <Button onClick={() => setShowFilterDialog(true)}>
+                <Search className="h-4 w-4 mr-2" />
+                Filtrar por usuário ou livro
+              </Button>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3">
-          <div className="relative flex-1">
+          {/* <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder={`Search ${
@@ -421,7 +506,7 @@ const Loans = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
-          </div>
+          </div> */}
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -435,30 +520,70 @@ const Loans = () => {
               <DropdownMenuLabel>Filtre Pelos Status</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuGroup>
-                <DropdownMenuItem onClick={() => setFilter("all")}>
+                <DropdownMenuItem onClick={() => setFilter([])}>
                   <div className="flex items-center space-x-2">
-                    <Checkbox checked={filter === "all"} />
+                    <Checkbox checked={filter.length === 0} />
                     <span>Todos os empréstimos</span>
                   </div>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setFilter("IN_DAYS")}>
+
+                <DropdownMenuItem
+                  onClick={() =>
+                    setFilter((prev) => {
+                      const updated = prev.includes(LoanStatus.IN_DAYS)
+                        ? prev.filter((f) => f !== LoanStatus.IN_DAYS)
+                        : [...prev, LoanStatus.IN_DAYS];
+                      return updated.length === ALL_STATUSES.length
+                        ? []
+                        : updated;
+                    })
+                  }
+                >
                   <div className="flex items-center space-x-2">
-                    <Checkbox checked={filter === "IN_DAYS"} />
+                    <Checkbox checked={filter.includes(LoanStatus.IN_DAYS)} />
                     <span>Em dia</span>
                   </div>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setFilter("RETURNED")}>
+
+                <DropdownMenuItem
+                  onClick={() =>
+                    setFilter((prev) => {
+                      const updated = prev.includes(LoanStatus.RETURNED)
+                        ? prev.filter((f) => f !== LoanStatus.RETURNED)
+                        : [...prev, LoanStatus.RETURNED];
+
+                      // Se marcou todos, limpa os filtros (sem filtro)
+                      return updated.length === ALL_STATUSES.length
+                        ? []
+                        : updated;
+                    })
+                  }
+                >
                   <div className="flex items-center space-x-2">
-                    <Checkbox checked={filter === "RETURNED"} />
+                    <Checkbox checked={filter.includes(LoanStatus.RETURNED)} />
                     <span>Retornada</span>
                   </div>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setFilter("OVERDUE")}>
+
+                <DropdownMenuItem
+                  onClick={() =>
+                    setFilter((prev) => {
+                      const updated = prev.includes(LoanStatus.OVERDUE)
+                        ? prev.filter((f) => f !== LoanStatus.OVERDUE)
+                        : [...prev, LoanStatus.OVERDUE];
+
+                      return updated.length === ALL_STATUSES.length
+                        ? []
+                        : updated;
+                    })
+                  }
+                >
                   <div className="flex items-center space-x-2">
-                    <Checkbox checked={filter === "OVERDUE"} />
+                    <Checkbox checked={filter.includes(LoanStatus.OVERDUE)} />
                     <span>Atrasada</span>
                   </div>
                 </DropdownMenuItem>
+
                 {/* <DropdownMenuItem onClick={() => setFilter("extended")}>
                   <div className="flex items-center space-x-2">
                     <Checkbox checked={filter === "extended"} />
@@ -468,6 +593,88 @@ const Loans = () => {
               </DropdownMenuGroup>
             </DropdownMenuContent>
           </DropdownMenu>
+
+          <Dialog open={showFilterDialog} onOpenChange={setShowFilterDialog}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Filtrar empréstimos</DialogTitle>
+                <DialogDescription>
+                  Selecione um livro ou usuário para aplicar o filtro.
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="filterBook">Livro</Label>
+                  <ReactSelect
+                    id="filterBook"
+                    styles={customSelectStyles}
+                    options={availableBooks.map((book) => ({
+                      value: book.id.toString(),
+                      label: `${book.title} - ${book.author}`,
+                    }))}
+                    value={
+                      selectedBook
+                        ? availableBooks
+                            .map((book) => ({
+                              value: book.id.toString(),
+                              label: `${book.title} - ${book.author}`,
+                            }))
+                            .find((b) => b.value === selectedBook)
+                        : null
+                    }
+                    onChange={(option) => setSelectedBook(option?.value || "")}
+                    placeholder="Todos os livros"
+                    isClearable
+                    isSearchable
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="filterUser">Usuário</Label>
+                  <ReactSelect
+                    id="filterUser"
+                    styles={customSelectStyles}
+                    options={availableUsers.map((user) => ({
+                      value: user.id.toString(),
+                      label: `${user.name} (${user.email})`,
+                    }))}
+                    value={
+                      selectedUser
+                        ? availableUsers
+                            .map((user) => ({
+                              value: user.id.toString(),
+                              label: `${user.name} (${user.email})`,
+                            }))
+                            .find((u) => u.value === selectedUser)
+                        : null
+                    }
+                    onChange={(option) => setSelectedUser(option?.value || "")}
+                    placeholder="Todos os usuários"
+                    isClearable
+                    isSearchable
+                  />
+                </div>
+              </div>
+
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowFilterDialog(false)}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  onClick={() => {
+                    setShowFilterDialog(false);
+                    loadLoans(); // já pega `selectedUser` e `selectedBook` no filtro da API
+                  }}
+                >
+                  Aplicar filtros
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
 
         {loading ? (
@@ -686,11 +893,14 @@ const Loans = () => {
                     variant="outline"
                     onClick={() => {
                       setSearchQuery("");
-                      setFilter("all");
+                      setFilter([]);
+                      setSelectedBook("");
+                      setSelectedUser("");
+                      loadLoans();
                     }}
                   >
                     <RefreshCw className="h-4 w-4 mr-2" />
-                    Clear filters
+                   Limpar Filtros
                   </Button>
                 ) : isLibrarianOrAdmin ? (
                   <Button onClick={() => setShowLoanDialog(true)}>
@@ -723,63 +933,49 @@ const Loans = () => {
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="book">Livro</Label>
-              <Select value={selectedBook} onValueChange={setSelectedBook}>
-                <SelectTrigger id="book">
-                  <SelectValue placeholder="Select a book" />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableBooks.length > 0 ? (
-                    availableBooks.map((book) => (
-                      <SelectItem
-                        key={book.id}
-                        value={book.id.toString()}
-                        disabled={book.available <= 0}
-                      >
-                        {book.title} by {book.author}{" "}
-                        {book.available > 0 ? (
-                          <span className="text-blue-600 font-medium ml-2">
-                            ({book.available}{" "}
-                            {book.available > 1 ? "disponíveis" : "disponível"})
-                          </span>
-                        ) : (
-                          <span className="text-red-500 font-semibold ml-2">
-                            (INDISPONÍVEL)
-                          </span>
-                        )}
-                      </SelectItem>
-                    ))
-                  ) : (
-                    <SelectItem value="none" disabled>
-                      <span className="text-red-500 font-semibold">
-                        INDISPONÍVEL
-                      </span>
-                    </SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
+              <ReactSelect
+                id="book"
+                styles={customSelectStyles}
+                options={availableBooks.map((book) => ({
+                  value: book.id.toString(),
+                  label: `${book.title} - ${book.author} ${
+                    book.available > 0
+                      ? `(${book.available} disponíveis)`
+                      : "(INDISPONÍVEL)"
+                  }`,
+                  isDisabled: book.available <= 0,
+                }))}
+                value={availableBooks
+                  .map((book) => ({
+                    value: book.id.toString(),
+                    label: `${book.title} - ${book.author}`,
+                  }))
+                  .find((b) => b.value === selectedBook)}
+                onChange={(option) => setSelectedBook(option?.value || "")}
+                placeholder="Selecione um livro"
+                isSearchable
+              />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="user">Usuário</Label>
-              <Select value={selectedUser} onValueChange={setSelectedUser}>
-                <SelectTrigger id="user">
-                  <SelectValue placeholder="Select a user" />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableUsers.map((user) => (
-                    <SelectItem key={user.id} value={user.id.toString()}>
-                      {user.name} ({user.email})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex items-start space-x-2 text-sm">
-              <Clock className="h-4 w-4 mt-0.5 text-muted-foreground" />
-              <span className="text-muted-foreground">
-                Os livros são emprestados por um período padrão de 14 dias.
-              </span>
+              <ReactSelect
+                id="user"
+                styles={customSelectStyles}
+                options={availableUsers.map((user) => ({
+                  value: user.id.toString(),
+                  label: `${user.name} (${user.email})`,
+                }))}
+                value={availableUsers
+                  .map((user) => ({
+                    value: user.id.toString(),
+                    label: `${user.name} (${user.email})`,
+                  }))
+                  .find((u) => u.value === selectedUser)}
+                onChange={(option) => setSelectedUser(option?.value || "")}
+                placeholder="Selecione um usuário"
+                isSearchable
+              />
             </div>
           </div>
 
@@ -832,6 +1028,47 @@ const Loans = () => {
       </div>
     </Layout>
   );
+};
+const customSelectStyles = {
+  control: (provided, state) => ({
+    ...provided,
+    backgroundColor: "hsl(var(--input))",
+    borderColor: state.isFocused ? "hsl(var(--ring))" : "hsl(var(--border))",
+    color: "hsl(var(--foreground))",
+    boxShadow: state.isFocused ? "0 0 0 1px hsl(var(--ring))" : "none",
+    "&:hover": {
+      borderColor: "hsl(var(--ring))",
+    },
+  }),
+  menu: (provided) => ({
+    ...provided,
+    backgroundColor: "hsl(var(--popover))",
+    color: "hsl(var(--popover-foreground))",
+    zIndex: 20,
+  }),
+  singleValue: (provided) => ({
+    ...provided,
+    color: "hsl(var(--foreground))",
+  }),
+  input: (provided) => ({
+    ...provided,
+    color: "hsl(var(--foreground))",
+  }),
+  option: (provided, state) => ({
+    ...provided,
+    backgroundColor: state.isFocused
+      ? "hsl(var(--muted))"
+      : "hsl(var(--popover))",
+    color: state.isDisabled
+      ? "hsl(var(--destructive))"
+      : "hsl(var(--foreground))",
+    cursor: state.isDisabled ? "not-allowed" : "pointer",
+    fontWeight: state.isDisabled ? 600 : 500,
+  }),
+  placeholder: (provided) => ({
+    ...provided,
+    color: "hsl(var(--muted-foreground))",
+  }),
 };
 
 export default Loans;

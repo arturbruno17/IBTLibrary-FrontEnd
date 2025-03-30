@@ -34,32 +34,32 @@ const AddBook = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { hasRole,  } = useAuth();
-  
+
   const isEditMode = !!id;
-  
+
   const [formData, setFormData] = useState<BookFormData>({
     title: '',
     author: '',
     isbn: '',
     quantity: 1
   });
-  
+
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [isbnLoading, setIsbnLoading] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
-  
+
   // Fetch book details if in edit mode
   useEffect(() => {
     if (isEditMode) {
       const fetchBook = async () => {
         setLoading(true);
-        
+
         // Simulate API call
         await new Promise(resolve => setTimeout(resolve, 800));
-        
+
         const book = mockBooks.find(b => b.id === id);
-        
+
         if (book) {
           setFormData({
             title: book.title,
@@ -71,20 +71,20 @@ const AddBook = () => {
           toast.error('Livro não encontrado');
           navigate('/catalog');
         }
-        
+
         setLoading(false);
       };
-      
+
       fetchBook();
     }
   }, [id, isEditMode, navigate]);
-  
+
   // Handle form input changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
-  
+
   // Handle quantity changes
   const handleQuantityChange = (amount: number) => {
     setFormData(prev => ({
@@ -92,28 +92,28 @@ const AddBook = () => {
       quantity: Math.max(1, prev.quantity + amount)
     }));
   };
-  
+
   // Handle ISBN search
   const handleIsbnSearch = async (isbn: string) => {
     if (!isbn.trim()) {
       toast.error('Por favor, insira um ISBN para pesquisar');
       return;
     }
-    
+
     setIsbnLoading(true);
     try {
       const bookData = await searchByISBN(isbn);
-      
+
       if (bookData) {
         const parsedBook = parseOpenLibraryBook(bookData);
-        
+
         setFormData({
           title: parsedBook.title || '',
           author: parsedBook.author || '',
           isbn: parsedBook.isbn || isbn,
           quantity: formData.quantity
         });
-        
+
         toast.success('Informações do livro encontradas!');
       } else {
         toast.error('Nenhum livro encontrado com este ISBN');
@@ -125,14 +125,14 @@ const AddBook = () => {
       setIsbnLoading(false);
     }
   };
-  
+
   // Handle scanner detection
   const handleScannerDetection = (detectedIsbn: string) => {
     setFormData(prev => ({ ...prev, isbn: detectedIsbn }));
     setShowScanner(false);
     handleIsbnSearch(detectedIsbn);
   };
-  
+
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -180,7 +180,7 @@ const AddBook = () => {
       </Layout>
     );
   }
-  
+
   return (
     <Layout>
       <div className="max-w-3xl mx-auto animate-fade-in">
@@ -193,7 +193,7 @@ const AddBook = () => {
             </Link>
           </Button>
         </div>
-        
+
         <div className="space-y-6">
           <div>
             <h1>{isEditMode ? 'Editar Livro' : 'Adicionar Novo Livro'}</h1>
@@ -203,7 +203,7 @@ const AddBook = () => {
                 : 'Preencha os detalhes para adicionar um novo livro ao catálogo'}
             </p>
           </div>
-          
+
           <form onSubmit={handleSubmit} className="space-y-8">
             {/* ISBN section with scanner */}
             <div className="p-6 border rounded-lg space-y-4">
@@ -219,7 +219,7 @@ const AddBook = () => {
                   Escanear Código de Barras
                 </Button>
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div className="md:col-span-3">
                   <Label htmlFor="isbn">ISBN</Label>
@@ -247,12 +247,12 @@ const AddBook = () => {
                   </Button>
                 </div>
               </div>
-              
+
               <p className="text-sm text-muted-foreground">
                 Digite um ISBN e clique em Buscar para preencher automaticamente os detalhes do livro, ou use o scanner.
               </p>
             </div>
-            
+
             {/* Book details form */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Left column */}
@@ -270,7 +270,7 @@ const AddBook = () => {
                     required
                   />
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="author">
                     Autor <span className="text-destructive">*</span>
@@ -284,7 +284,7 @@ const AddBook = () => {
                     required
                   />
                 </div>
-                
+
                 {/*<div className="space-y-2">*/}
                 {/*  <Label htmlFor="publisher">Editora</Label>*/}
                 {/*  <Input*/}
@@ -295,7 +295,7 @@ const AddBook = () => {
                 {/*    placeholder="Nome da editora"*/}
                 {/*  />*/}
                 {/*</div>*/}
-                
+
                 {/*<div className="space-y-2">*/}
                 {/*  <Label htmlFor="publishedYear">Ano de Publicação</Label>*/}
                 {/*  <Input*/}
@@ -307,7 +307,7 @@ const AddBook = () => {
                 {/*    type="number"*/}
                 {/*  />*/}
                 {/*</div>*/}
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="quantity">Quantidade</Label>
                   <div className="flex items-center space-x-2">
@@ -340,7 +340,7 @@ const AddBook = () => {
                   </div>
                 </div>
               </div>
-              
+
               {/* Right column */}
               {/*<div className="space-y-4">*/}
               {/*  <div className="space-y-2">*/}
@@ -356,7 +356,7 @@ const AddBook = () => {
               {/*  </div>*/}
               {/*</div>*/}
             </div>
-            
+
             {/* Form actions */}
             <div className="flex justify-end space-x-2">
               <Button
@@ -382,7 +382,7 @@ const AddBook = () => {
             </div>
           </form>
         </div>
-        
+
         {/* Barcode scanner modal */}
         <BarcodeScanner
           onDetected={handleScannerDetection}

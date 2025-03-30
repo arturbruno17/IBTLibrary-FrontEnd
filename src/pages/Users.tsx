@@ -55,7 +55,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
-import { usersAPI } from "@/services/api";
+import { authAPI, usersAPI } from "@/services/api";
 import { mockUsers } from "@/data/mockData";
 
 // Mock data for users
@@ -152,33 +152,31 @@ const Users = () => {
 
     setIsProcessing(true);
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    try {
+      if (role === Role.LIBRARIAN) {
+        await authAPI.registerLibrarian(name, email, password);
+      } else {
+        // se quiser criar um endpoint futuro para leitores, troque aqui
+        await authAPI.registerLibrarian(name, email, password); // por enquanto usa o mesmo
+      }
 
-    // Generate new user
-    const newUser: User = {
-      id: `new-${Date.now()}`,
-      name,
-      email,
-      role,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-
-    setUsers((prev) => [...prev, newUser]);
-
-    toast.success(`Usuário "${name}" adicionado com sucesso`);
-
-    // Reset form and close dialog
-    setNewUserData({
-      name: "",
-      email: "",
-      password: "",
-      role: Role.READER,
-    });
-    setShowAddUserDialog(false);
-    setIsProcessing(false);
+      toast.success(`Usuário "${name}" adicionado com sucesso`);
+      setNewUserData({
+        name: "",
+        email: "",
+        password: "",
+        role: Role.READER,
+      });
+      setShowAddUserDialog(false);
+      fetchUsers(); // recarrega lista
+    } catch (error) {
+      toast.error("Erro ao criar usuário");
+      console.error("Erro:", error);
+    } finally {
+      setIsProcessing(false);
+    }
   };
+
 
   // Handle changing user role
   const handleChangeRole = async () => {
@@ -580,7 +578,6 @@ const Users = () => {
                       Bibliotecário
                     </SelectItem>
                   )}
-                  <SelectItem value={Role.READER}>Leitor</SelectItem>
                 </SelectContent>
               </Select>
             </div>

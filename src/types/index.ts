@@ -70,3 +70,23 @@ export interface OpenLibraryResponse {
     start: number;
     docs: OpenLibraryBook[];
 }
+
+export interface SummaryResponse {
+    total_books: number;
+    active_loans_count: number;
+    readers_count: number;
+    overdue_loans_count: number;
+}
+
+export enum RecentActivityTypeEnum {
+    LOAN_CREATED = 'LOAN_CREATED',
+    LOAN_RETURNED = 'LOAN_RETURNED',
+    LOAN_EXTENDED = 'LOAN_EXTENDED',
+}
+
+export  interface RecentActivityResponse {
+    id: number;
+    loan: Loan;
+    activity: RecentActivityTypeEnum;
+    created_at: string;
+}

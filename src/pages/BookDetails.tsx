@@ -42,17 +42,19 @@ const BookDetails = () => {
 
   useEffect(() => {
     const fetchBook = async () => {
-      setLoading(true);
-      try {
-        const bookData = await booksAPI.getById(id!); // id está vindo do useParams
-        setBook(bookData);
-      } catch (error) {
-        console.error('Erro ao buscar livro:', error);
-        setBook(null);
-      } finally {
-        setLoading(false);
-      }
-    };
+        setLoading(true);
+        try {
+          await new Promise(resolve => setTimeout(resolve, 1000)); // 👈 só pra testar
+          const bookData = await booksAPI.getById(id!);
+          setBook(bookData);
+        } catch (error) {
+          console.error("Erro ao buscar livro:", error);
+          setBook(null);
+        } finally {
+          setLoading(false);
+        }
+      };
+
 
     if (id) fetchBook();
   }, [id]);

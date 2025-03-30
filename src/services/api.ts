@@ -1,6 +1,6 @@
 
 import axios from 'axios';
-import { Book, Loan, User, Role, LoanStatus } from '@/types';
+import { Book, Loan, User, Role, LoanStatus, SummaryResponse, RecentActivityResponse } from '@/types';
 import { toast } from "sonner";
 
 // Base API instance
@@ -169,6 +169,19 @@ export const usersAPI = {
     }
 };
 
+export const summaryAPI = {
+    getAll: async (): Promise<SummaryResponse> => {
+        const response = await api.get('/summary');
+        return response.data;
+    },
+};
+
+export const activityAPI = {
+    getAll: async (params: { maximum_date: string; page: number; limit: number }): Promise<RecentActivityResponse[]> => {
+      const response = await api.get('/loan/activity', { params });
+      return response.data;
+    },
+  };
 
 
 export default api;
