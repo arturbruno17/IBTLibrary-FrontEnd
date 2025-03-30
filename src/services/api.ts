@@ -72,13 +72,13 @@ export const booksAPI = {
         toast.success(`Book "${book.title}" added successfully`);
         return response.data;
     },
-    update: async (id: string, book: Partial<Book>) => {
+    update: async (id: number, book: Partial<Book>) => {
         const response = await api.put<Book>(`/books/${id}`, book);
         // Add a success toast when book is updated
         toast.success(`Book "${book.title}" updated successfully`);
         return response.data;
     },
-    delete: async (id: string) => {
+    delete: async (id: number) => {
         const response = await api.delete(`/books/${id}`);
         toast.success('Book deleted successfully');
         return response.data;
@@ -124,28 +124,32 @@ export const loansAPI = {
                 book_id,
                 types,
             },
-            // Add additional parameters here if needed
         });
         return response.data;
-    }
+    },
 
+    getActivity: async (params: { maximum_date: string; page: number; limit: number }): Promise<RecentActivityResponse[]> => {
+        const response = await api.get('/loan/activity', { params });
+        return response.data;
+    },
 };
 
 // Users API
 export const usersAPI = {
 
-    getAll: async (page = 0, limit = 12, query = "") => {
+    getAll: async (page = 0, limit = 12, query = "", roles: Role) => {
         const params: Record<string, any> = {
-          page: page + 1,
-          limit,
+            page: page + 1,
+            limit,
+            roles,
         };
         if (query.trim() !== "") {
-          params.q = query.trim();
+            params.q = query.trim();
         }
 
         const response = await api.get<User[]>("/people", { params });
         return response.data;
-      },
+    },
 
     getById: async (id: string) => {
         const response = await api.get<User>(`/people/${id}`);
@@ -154,19 +158,19 @@ export const usersAPI = {
     getLoanByUser: async (id: number): Promise<Loan[]> => {
         const response = await api.get(`/people/${id}/loans`);
         return response.data;
-      },
+    },
     update: async (id: string, user: Partial<User>) => {
         const response = await api.put<User>(`/people/${id}`, user);
         return response.data;
     },
-    delete: async (id: string) => {
+    delete: async (id: number) => {
         const response = await api.delete(`/people/${id}`);
         return response.data;
     },
-    changeRole: async (id: string, role: Role) => {
+    changeRole: async (id: number, role: Role) => {
         const response = await api.patch<User>(`/people/${id}/${role}`);
         return response.data;
-    }
+    },
 };
 
 export const summaryAPI = {
@@ -175,13 +179,5 @@ export const summaryAPI = {
         return response.data;
     },
 };
-
-export const activityAPI = {
-    getAll: async (params: { maximum_date: string; page: number; limit: number }): Promise<RecentActivityResponse[]> => {
-      const response = await api.get('/loan/activity', { params });
-      return response.data;
-    },
-  };
-
 
 export default api;

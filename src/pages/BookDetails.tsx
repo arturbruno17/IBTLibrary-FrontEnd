@@ -68,7 +68,7 @@ const BookDetails = () => {
     await new Promise(resolve => setTimeout(resolve, 1000));
 
     toast.success(`Empréstimo de "${book.title}" realizado com sucesso`);
-    setBook(prev => prev ? { ...prev, availableQuantity: prev.availableQuantity - 1 } : null);
+    setBook(prev => prev ? { ...prev, availableQuantity: prev.available - 1 } : null);
 
     setBorrowing(false);
   };
@@ -76,14 +76,26 @@ const BookDetails = () => {
   const handleDelete = async () => {
     if (!book) return;
 
+    // Verifica se o livro está emprestado
+    const isBorrowed = book.available < book.quantity;
+
+    if (isBorrowed) {
+      toast.error(`O livro "${book.title}" está emprestado e não pode ser excluído.`);
+      return;
+    }
+
     setDeleting(true);
 
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    toast.success(`Livro "${book.title}" excluído com sucesso`);
-
-    setDeleting(false);
-    navigate('/catalog');
+    try {
+      await booksAPI.delete(book.id);
+      toast.success(`Livro "${book.title}" excluído com sucesso`);
+      navigate('/catalog');
+    } catch (error) {
+      toast.error("Erro ao excluir o livro.");
+      console.error("Erro na exclusão:", error);
+    } finally {
+      setDeleting(false);
+    }
   };
 
   if (loading) {
@@ -117,7 +129,7 @@ const BookDetails = () => {
     );
   }
 
-  const isAvailable = book.quantity > 0;
+  const isAvailable = book.available > 0;
 
   return (
     <Layout>
@@ -145,10 +157,10 @@ const BookDetails = () => {
                 {isAvailable ? (
                   <span className="flex items-center">
                     <CheckCircle className="h-3 w-3 mr-1" />
-                    Disponível ({book.quantity})
+                    Disponível ({book.available})
                   </span>
                 ) : (
-                  <span>Indisponível no momento</span>
+                  <span>Indisponível</span>
                 )}
               </Badge>
             </div>
@@ -231,14 +243,17 @@ const BookDetails = () => {
                   </>
                 ) : (
                   <>
-                    <Button
-                      className="justify-start"
-                      disabled={!isAvailable || borrowing}
-                      onClick={handleBorrow}
-                    >
-                      <BookCopy className="h-4 w-4 mr-2" />
-                      {borrowing ? 'Processando...' : 'Emprestar Livro'}
-                    </Button>
+                  {isLibrarianOrAdmin && (
+                     <Button
+                     className="justify-start"
+                     disabled={!isAvailable || borrowing}
+                     onClick={handleBorrow}
+                   >
+                     <BookCopy className="h-4 w-4 mr-2" />
+                     {borrowing ? 'Processando...' : 'Emprestar Livro'}
+                   </Button>
+                  )}
+
                   </>
                 )}
               </div>

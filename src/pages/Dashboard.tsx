@@ -20,7 +20,7 @@ import {
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { activityAPI, summaryAPI, usersAPI } from "@/services/api";
+import { loansAPI, summaryAPI, usersAPI } from "@/services/api";
 import {
   Loan,
   RecentActivityResponse,
@@ -59,7 +59,7 @@ const Dashboard = () => {
         try {
           const [summaryData, activityRaw] = await Promise.all([
             summaryAPI.getAll(),
-            activityAPI.getAll({
+            loansAPI.getActivity({
               maximum_date: maximumDate,
               page: 0,
               limit: 10000,

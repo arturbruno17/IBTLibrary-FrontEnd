@@ -179,7 +179,7 @@ const Register = () => {
             <p className="text-sm text-muted-foreground">
               Já tem uma conta?{" "}
               <Link to="/login" className="text-primary hover:underline">
-                Sign in
+                Login
               </Link>
             </p>
           </CardFooter>

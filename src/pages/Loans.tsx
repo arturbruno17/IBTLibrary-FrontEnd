@@ -47,7 +47,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { Label } from "@/components/ui/label";
 import { mockBooks, mockUsers } from "@/data/mockData";
 import { booksAPI, usersAPI, loansAPI } from "@/services/api";
@@ -71,6 +71,9 @@ const Loans = () => {
   const [selectedBook, setSelectedBook] = useState<string>("");
   const [selectedUser, setSelectedUser] = useState<string>("");
   const [creatingLoan, setCreatingLoan] = useState(false);
+
+  const [searchParams] = useSearchParams();
+  const personId = searchParams.get("person_id");
 
   const [page, setPage] = useState(0);
   const [limit] = useState(10);
@@ -117,26 +120,6 @@ const Loans = () => {
     console.log("Auth loading:", user.id);
   }, [authLoading]);
 
-  //   useEffect(() => {
-  //     let result = [...loans];
-
-  //     if (filter !== "all") {
-  //       result = result.filter((loan) => deriveLoanStatus(loan) === filter);
-  //     }
-
-  //     if (searchQuery.trim()) {
-  //       const query = searchQuery.toLowerCase();
-  //       result = result.filter(
-  //         (loan) =>
-  //           loan.book?.title.toLowerCase().includes(query) ||
-  //           loan.book?.author.toLowerCase().includes(query) ||
-  //           loan.person?.name.toLowerCase().includes(query)
-  //       );
-  //     }
-
-  //     setFilteredLoans(result);
-  //   }, [loans, searchQuery, filter]);
-
   useEffect(() => {
     let result = [...loans];
 
@@ -156,6 +139,24 @@ const Loans = () => {
 
     setFilteredLoans(result);
   }, [loans, searchQuery, filter]);
+
+  useEffect(() => {
+    const fetchLoans = async () => {
+      if (!personId) return;
+
+      setLoading(true);
+      try {
+        const result = await usersAPI.getLoanByUser(Number(personId));
+        setLoans(result);
+      } catch (error) {
+        console.error("Erro ao carregar empréstimos:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLoans();
+  }, [personId]);
 
   const loadLoans = async () => {
     setLoading(true);
@@ -185,7 +186,7 @@ const Loans = () => {
       if (selectedBook) filters.book_id = selectedBook;
 
       if (filter.length > 0) {
-        filters.types = filter.join(","); // Ex: "IN_DAYS,RETURNED"
+        filters.types = filter.join(",");
       }
 
       const fetched = await loansAPI.getAllLoans(filters);
@@ -278,29 +279,29 @@ const Loans = () => {
     console.log("Loans carregados da API:", loans);
   }, [loans]);
 
-//   const handleCreateLoan = async () => {
-//     if (!selectedBook || !selectedUser) {
-//       toast.error("Please select both a book and a user");
-//       return;
-//     }
+  //   const handleCreateLoan = async () => {
+  //     if (!selectedBook || !selectedUser) {
+  //       toast.error("Please select both a book and a user");
+  //       return;
+  //     }
 
-//     setCreatingLoan(true);
+  //     setCreatingLoan(true);
 
-//     try {
-//       await loansAPI.create(selectedBook, selectedUser);
-//       await loadLoans();
-//       toast.success("Loan created successfully!");
-//       setShowLoanDialog(false);
-//       setSelectedBook("");
-//       setSelectedUser("");
-//     } catch (error) {
-//       console.error("Error creating loan:", error);
-//       toast.error("Failed to create loan.");
-//     } finally {
-//       setCreatingLoan(false);
-//     }
-//   };
-const handleCreateLoan = async () => {
+  //     try {
+  //       await loansAPI.create(selectedBook, selectedUser);
+  //       await loadLoans();
+  //       toast.success("Loan created successfully!");
+  //       setShowLoanDialog(false);
+  //       setSelectedBook("");
+  //       setSelectedUser("");
+  //     } catch (error) {
+  //       console.error("Error creating loan:", error);
+  //       toast.error("Failed to create loan.");
+  //     } finally {
+  //       setCreatingLoan(false);
+  //     }
+  //   };
+  const handleCreateLoan = async () => {
     if (!selectedBook || !selectedUser) {
       toast.error("Please select both a book and a user");
       return;
@@ -357,11 +358,6 @@ const handleCreateLoan = async () => {
         updatedLoan,
         ...loans.slice(loanIndex + 1),
       ]);
-
-      //   const mockLoanIndex = mockLoans.findIndex((l) => l.id === loanId);
-      //   if (mockLoanIndex >= 0) {
-      //     mockLoans[mockLoanIndex] = updatedLoan;
-      //   }
 
       const returnLoan = await loansAPI.return(id);
       await loadLoans();
@@ -489,10 +485,6 @@ const handleCreateLoan = async () => {
               </Button>
             </div>
           )}
-            <Button onClick={() => setShowFilterDialog(true)}>
-                <Search className="h-4 w-4 mr-2" />
-                Filtrar por usuário ou livro
-              </Button>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3">
@@ -507,6 +499,16 @@ const handleCreateLoan = async () => {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div> */}
+
+          {isLibrarianOrAdmin && (
+            <Button
+              variant="outline" // 👉 deixa com aparência igual ao botão de filtros
+              onClick={() => setShowFilterDialog(true)}
+            >
+              <Search className="h-4 w-4 mr-2" />
+              Filtrar por usuário e livro
+            </Button>
+          )}
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -799,7 +801,7 @@ const handleCreateLoan = async () => {
                                         <CalendarPlus className="h-3 w-3" />
                                       )}
                                       <span className="ml-1 hidden sm:inline">
-                                        Extend
+                                        Estender
                                       </span>
                                     </Button>
 
@@ -814,7 +816,7 @@ const handleCreateLoan = async () => {
                                         <CheckCircle className="h-3 w-3" />
                                       )}
                                       <span className="ml-1 hidden sm:inline">
-                                        Return
+                                        Devolver
                                       </span>
                                     </Button>
                                   </>
@@ -880,10 +882,12 @@ const handleCreateLoan = async () => {
                 <div className="h-16 w-16 bg-muted rounded-full flex items-center justify-center mb-4">
                   <BookCopy className="h-8 w-8 text-muted-foreground" />
                 </div>
-                <h3 className="text-lg font-medium">No loans found</h3>
+                <h3 className="text-lg font-medium">
+                  Nenhum empréstimo encontrado
+                </h3>
                 <p className="text-muted-foreground mb-4">
                   {searchQuery || filter !== "all"
-                    ? "Try adjusting your search or filters"
+                    ? ""
                     : isLibrarianOrAdmin
                     ? "No loans have been issued yet"
                     : "You don't have any active loans"}
@@ -900,7 +904,7 @@ const handleCreateLoan = async () => {
                     }}
                   >
                     <RefreshCw className="h-4 w-4 mr-2" />
-                   Limpar Filtros
+                    Limpar Filtros
                   </Button>
                 ) : isLibrarianOrAdmin ? (
                   <Button onClick={() => setShowLoanDialog(true)}>

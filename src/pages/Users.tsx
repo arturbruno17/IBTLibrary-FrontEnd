@@ -54,6 +54,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { useNavigate } from "react-router-dom";
 
 import { authAPI, usersAPI } from "@/services/api";
 import { mockUsers } from "@/data/mockData";
@@ -76,6 +77,7 @@ const Users = () => {
   const [showChangeRoleDialog, setShowChangeRoleDialog] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [newRole, setNewRole] = useState<Role>(Role.READER);
+  const isLibrarianOrAdmin = hasRole([Role.LIBRARIAN, Role.ADMIN]);
 
   // Form data for new user
   const [newUserData, setNewUserData] = useState({
@@ -85,33 +87,56 @@ const Users = () => {
     role: Role.READER,
   });
 
-  // Action states
   const [isProcessing, setIsProcessing] = useState(false);
   const [page, setPage] = useState(0);
   const [limit] = useState(10);
-  // Load users data
-  const fetchUsers = async (search: string = "") => {
+  const navigate = useNavigate();
+
+  const fetchUsers = async (
+    search: string = "",
+    roleFilter: UserFilter = filter
+  ) => {
     setLoading(true);
 
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 800));
-    const allUsers = await usersAPI.getAll(page, limit, search);
-    setUsers(allUsers);
+    try {
+      let rolesParam: Role | undefined;
+      switch (roleFilter) {
+        case "reader":
+          rolesParam = Role.READER;
+          break;
+        case "librarian":
+          rolesParam = Role.LIBRARIAN;
+          break;
+        case "admin":
+          rolesParam = Role.ADMIN;
+          break;
+        default:
+          rolesParam = undefined;
+      }
 
-    setLoading(false);
+      const allUsers = await usersAPI.getAll(page, limit, search, rolesParam);
+      setUsers(allUsers);
+    } catch (error) {
+      toast.error("Erro ao carregar usuários.");
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
     console.log("Fetch users with:", searchQuery);
-    fetchUsers(searchQuery);
+    fetchUsers(searchQuery, filter);
   }, [page]);
 
+  useEffect(() => {
+    fetchUsers(searchQuery, filter);
+  }, [filter, searchQuery, page]);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value.toLowerCase();
     setSearchQuery(query);
-    setPage(0); // Reseta a página na nova busca
-    fetchUsers(query);
+    setPage(0);
   };
 
   // Apply filters and search
@@ -177,14 +202,11 @@ const Users = () => {
     }
   };
 
-
   // Handle changing user role
   const handleChangeRole = async () => {
-    if (!selectedUserId || !newRole) {
-      return;
-    }
+    if (!selectedUserId || !newRole) return;
 
-    // Check if trying to set an admin role
+    // Não permitir definir usuário como admin
     if (newRole === Role.ADMIN) {
       toast.error("Não é possível definir um usuário como administrador");
       return;
@@ -192,46 +214,52 @@ const Users = () => {
 
     setIsProcessing(true);
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 800));
-
-    // Update user in state
-    setUsers((prev) =>
-      prev.map((user) =>
-        user.id === selectedUserId
-          ? { ...user, role: newRole, updatedAt: new Date().toISOString() }
-          : user
-      )
-    );
-
-    const selectedUser = users.find((u) => u.id === selectedUserId);
-    if (selectedUser) {
-      const roleName = newRole === Role.LIBRARIAN ? "bibliotecário" : "leitor";
-      toast.success(
-        `Função de ${selectedUser.name} atualizada para ${roleName}`
+    try {
+      const updatedUser = await usersAPI.changeRole(
+        Number(selectedUserId),
+        newRole
       );
-    }
 
-    setShowChangeRoleDialog(false);
-    setIsProcessing(false);
+      // Atualiza o usuário no estado local
+      setUsers((prev) =>
+        prev.map((user) =>
+          user.id === updatedUser.id
+            ? { ...user, role: updatedUser.role }
+            : user
+        )
+      );
+
+      toast.success(`Função de ${updatedUser.name} atualizada com sucesso`);
+    } catch (error) {
+      toast.error("Erro ao atualizar função do usuário");
+      console.error("Erro ao mudar função:", error);
+    } finally {
+      setIsProcessing(false);
+      setShowChangeRoleDialog(false);
+    }
   };
 
   // Handle deleting a user
-  const handleDeleteUser = async (userId: string) => {
+  const handleDeleteUser = async (userId: number) => {
     setIsProcessing(true);
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 800));
+    try {
+      // Chama a API de exclusão real
+      await usersAPI.delete(Number(userId));
 
-    // Remove user from state
-    const userToDelete = users.find((u) => u.id === userId);
-    setUsers((prev) => prev.filter((user) => user.id !== userId));
+      // Remove usuário da lista
+      const userToDelete = users.find((u) => u.id === Number(userId));
+      setUsers((prev) => prev.filter((user) => user.id !== Number(userId)));
 
-    if (userToDelete) {
-      toast.success(`Usuário "${userToDelete.name}" excluído com sucesso`);
+      if (userToDelete) {
+        toast.success(`Usuário "${userToDelete.name}" excluído com sucesso`);
+      }
+    } catch (error) {
+      console.error("Erro ao excluir usuário:", error);
+      toast.error("Erro ao excluir o usuário.");
+    } finally {
+      setIsProcessing(false);
     }
-
-    setIsProcessing(false);
   };
 
   // Check if user can be edited (only admins can edit other users, users can edit themselves)
@@ -279,7 +307,6 @@ const Users = () => {
       <div className="space-y-6 animate-fade-in">
         <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
           <div>
-
             <h1>{Role.READER ? "Usuários" : "Gerenciamento de Usuários"}</h1>
             <p className="text-muted-foreground">
               Gerencie usuários e suas funções
@@ -356,8 +383,8 @@ const Users = () => {
         ) : (
           <>
             {filteredUsers.length > 0 ? (
-              <div className="border rounded-lg overflow-hidden">
-                <table className="w-full">
+              <div className="border rounded-lg overflow-x-auto">
+                <table className="w-full min-w-[600px]">
                   <thead className="bg-muted/50">
                     <tr>
                       <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
@@ -403,7 +430,9 @@ const Users = () => {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
-                                <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                                {isLibrarianOrAdmin && (
+                                  <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                                )}
                                 <DropdownMenuSeparator />
                                 {hasRole(Role.ADMIN) && (
                                   <DropdownMenuItem
@@ -417,11 +446,15 @@ const Users = () => {
                                     Alterar Função
                                   </DropdownMenuItem>
                                 )}
-                                <DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    navigate(`/loans?person_id=${userItem.id}`)
+                                  }
+                                >
                                   <BookCopy className="h-4 w-4 mr-2" />
                                   Ver Empréstimos
                                 </DropdownMenuItem>
-                                <DropdownMenuSeparator />
+
                                 {hasRole(Role.ADMIN) && (
                                   <AlertDialog>
                                     <AlertDialogTrigger asChild>
@@ -688,25 +721,25 @@ const Users = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-       <div className="flex justify-center mt-8 space-x-2">
-              <Button
-                variant="outline"
-                disabled={page === 0}
-                onClick={() => setPage((p) => p - 1)}
-              >
-                Anterior
-              </Button>
-              <span className="px-4 py-2 text-sm text-muted-foreground">
-                Página {page + 1}
-              </span>
-              <Button
-                variant="outline"
-                disabled={filteredUsers.length < limit}
-                onClick={() => setPage((p) => p + 1)}
-              >
-                Próxima
-              </Button>
-            </div>
+      <div className="flex justify-center mt-8 space-x-2">
+        <Button
+          variant="outline"
+          disabled={page === 0}
+          onClick={() => setPage((p) => p - 1)}
+        >
+          Anterior
+        </Button>
+        <span className="px-4 py-2 text-sm text-muted-foreground">
+          Página {page + 1}
+        </span>
+        <Button
+          variant="outline"
+          disabled={filteredUsers.length < limit}
+          onClick={() => setPage((p) => p + 1)}
+        >
+          Próxima
+        </Button>
+      </div>
     </Layout>
   );
 };

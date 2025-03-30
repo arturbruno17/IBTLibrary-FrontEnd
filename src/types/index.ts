@@ -15,6 +15,7 @@ export interface AuthState {
 }
 
 // User
+
 export interface User {
     id: number;
     name: string;
@@ -41,6 +42,12 @@ export enum LoanStatus {
     IN_DAYS= "IN_DAYS",
     RETURNED = "RETURNED",
     OVERDUE = "OVERDUE",
+}
+
+export enum RecentActivityTypeEnum {
+    LOAN_CREATED = 'LOAN_CREATED',
+    LOAN_RETURNED = 'LOAN_RETURNED',
+    LOAN_EXTENDED = 'LOAN_EXTENDED',
 }
 
 export interface Loan {
@@ -78,11 +85,7 @@ export interface SummaryResponse {
     overdue_loans_count: number;
 }
 
-export enum RecentActivityTypeEnum {
-    LOAN_CREATED = 'LOAN_CREATED',
-    LOAN_RETURNED = 'LOAN_RETURNED',
-    LOAN_EXTENDED = 'LOAN_EXTENDED',
-}
+
 
 export  interface RecentActivityResponse {
     id: number;

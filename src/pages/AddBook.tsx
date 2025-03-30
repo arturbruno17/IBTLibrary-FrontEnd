@@ -1,11 +1,10 @@
-
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
-import Layout from '@/components/Layout';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate, Link } from "react-router-dom";
+import Layout from "@/components/Layout";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   ArrowLeft,
   Loader2,
@@ -13,15 +12,15 @@ import {
   Search,
   Plus,
   Minus,
-  Save
-} from 'lucide-react';
-import { toast } from 'sonner';
-import { useAuth } from '@/context/AuthContext';
-import { Book, Role } from '@/types';
-import BarcodeScanner from '@/components/BarcodeScanner';
-import { parseOpenLibraryBook, searchByISBN } from '@/services/openLibraryApi';
-import { mockBooks } from '@/data/mockData';
-import { booksAPI } from '@/services/api';
+  Save,
+} from "lucide-react";
+import { toast } from "sonner";
+import { useAuth } from "@/context/AuthContext";
+import { Book, Role } from "@/types";
+import BarcodeScanner from "@/components/BarcodeScanner";
+import { parseOpenLibraryBook, searchByISBN } from "@/services/openLibraryApi";
+import { mockBooks } from "@/data/mockData";
+import { booksAPI } from "@/services/api";
 
 interface BookFormData {
   title: string;
@@ -33,15 +32,15 @@ interface BookFormData {
 const AddBook = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { hasRole,  } = useAuth();
+  const { hasRole } = useAuth();
 
   const isEditMode = !!id;
 
   const [formData, setFormData] = useState<BookFormData>({
-    title: '',
-    author: '',
-    isbn: '',
-    quantity: 1
+    title: "",
+    author: "",
+    isbn: "",
+    quantity: 1,
   });
 
   const [loading, setLoading] = useState(false);
@@ -55,24 +54,20 @@ const AddBook = () => {
       const fetchBook = async () => {
         setLoading(true);
 
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 800));
-
-        const book = mockBooks.find(b => b.id === id);
-
-        if (book) {
+        try {
+          const book = await booksAPI.getById(id!);
           setFormData({
             title: book.title,
             author: book.author,
             isbn: book.isbn,
-            quantity: book.quantity
+            quantity: book.quantity,
           });
-        } else {
-          toast.error('Livro não encontrado');
-          navigate('/catalog');
+        } catch (error) {
+          toast.error("Erro ao carregar livro");
+          navigate("/catalog");
+        } finally {
+          setLoading(false);
         }
-
-        setLoading(false);
       };
 
       fetchBook();
@@ -80,23 +75,25 @@ const AddBook = () => {
   }, [id, isEditMode, navigate]);
 
   // Handle form input changes
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   // Handle quantity changes
   const handleQuantityChange = (amount: number) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      quantity: Math.max(1, prev.quantity + amount)
+      quantity: Math.max(1, prev.quantity + amount),
     }));
   };
 
   // Handle ISBN search
   const handleIsbnSearch = async (isbn: string) => {
     if (!isbn.trim()) {
-      toast.error('Por favor, insira um ISBN para pesquisar');
+      toast.error("Por favor, insira um ISBN para pesquisar");
       return;
     }
 
@@ -108,19 +105,19 @@ const AddBook = () => {
         const parsedBook = parseOpenLibraryBook(bookData);
 
         setFormData({
-          title: parsedBook.title || '',
-          author: parsedBook.author || '',
+          title: parsedBook.title || "",
+          author: parsedBook.author || "",
           isbn: parsedBook.isbn || isbn,
-          quantity: formData.quantity
+          quantity: formData.quantity,
         });
 
-        toast.success('Informações do livro encontradas!');
+        toast.success("Informações do livro encontradas!");
       } else {
-        toast.error('Nenhum livro encontrado com este ISBN');
+        toast.error("Nenhum livro encontrado com este ISBN");
       }
     } catch (error) {
-      console.error('Erro ao pesquisar ISBN:', error);
-      toast.error('Erro ao pesquisar o livro');
+      console.error("Erro ao pesquisar ISBN:", error);
+      toast.error("Erro ao pesquisar o livro");
     } finally {
       setIsbnLoading(false);
     }
@@ -128,7 +125,7 @@ const AddBook = () => {
 
   // Handle scanner detection
   const handleScannerDetection = (detectedIsbn: string) => {
-    setFormData(prev => ({ ...prev, isbn: detectedIsbn }));
+    setFormData((prev) => ({ ...prev, isbn: detectedIsbn }));
     setShowScanner(false);
     handleIsbnSearch(detectedIsbn);
   };
@@ -138,7 +135,7 @@ const AddBook = () => {
     e.preventDefault();
 
     if (!formData.title || !formData.author || !formData.isbn) {
-      toast.error('Por favor, preencha todos os campos obrigatórios');
+      toast.error("Por favor, preencha todos os campos obrigatórios");
       return;
     }
 
@@ -146,7 +143,6 @@ const AddBook = () => {
 
     try {
       if (!isEditMode) {
-        // Chama a API de criação de livro
         await booksAPI.create({
           title: formData.title,
           author: formData.author,
@@ -156,19 +152,24 @@ const AddBook = () => {
 
         toast.success(`Livro "${formData.title}" adicionado com sucesso`);
       } else {
-        // Aqui você pode adicionar booksAPI.update quando criar essa função
-        toast.error('Modo de edição ainda não implementado com API');
+        await booksAPI.update(Number(id), {
+          title: formData.title,
+          author: formData.author,
+          isbn: formData.isbn,
+          quantity: formData.quantity,
+        });
+
+        toast.success(`Livro "${formData.title}" atualizado com sucesso`);
       }
 
-      navigate('/catalog');
+      navigate("/catalog");
     } catch (error) {
-      console.error('Erro ao enviar formulário:', error);
-      toast.error('Ocorreu um erro ao salvar o livro');
+      console.error("Erro ao enviar formulário:", error);
+      toast.error("Ocorreu um erro ao salvar o livro");
     } finally {
       setSubmitting(false);
     }
   };
-
 
   if (loading) {
     return (
@@ -196,11 +197,11 @@ const AddBook = () => {
 
         <div className="space-y-6">
           <div>
-            <h1>{isEditMode ? 'Editar Livro' : 'Adicionar Novo Livro'}</h1>
+            <h1>{isEditMode ? "Editar Livro" : "Adicionar Novo Livro"}</h1>
             <p className="text-muted-foreground">
               {isEditMode
-                ? 'Atualize as informações deste livro'
-                : 'Preencha os detalhes para adicionar um novo livro ao catálogo'}
+                ? "Atualize as informações deste livro"
+                : "Preencha os detalhes para adicionar um novo livro ao catálogo"}
             </p>
           </div>
 
@@ -243,13 +244,14 @@ const AddBook = () => {
                     ) : (
                       <Search className="h-4 w-4 mr-2" />
                     )}
-                    {isbnLoading ? 'Buscando...' : 'Buscar'}
+                    {isbnLoading ? "Buscando..." : "Buscar"}
                   </Button>
                 </div>
               </div>
 
               <p className="text-sm text-muted-foreground">
-                Digite um ISBN e clique em Buscar para preencher automaticamente os detalhes do livro, ou use o scanner.
+                Digite um ISBN e clique em Buscar para preencher automaticamente
+                os detalhes do livro, ou use o scanner.
               </p>
             </div>
 
@@ -324,7 +326,12 @@ const AddBook = () => {
                       id="quantity"
                       name="quantity"
                       value={formData.quantity}
-                      onChange={(e) => setFormData(prev => ({ ...prev, quantity: parseInt(e.target.value) || 1 }))}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          quantity: parseInt(e.target.value) || 1,
+                        }))
+                      }
                       type="number"
                       min="1"
                       className="text-center"
@@ -362,7 +369,7 @@ const AddBook = () => {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => navigate('/catalog')}
+                onClick={() => navigate("/catalog")}
               >
                 Cancelar
               </Button>
@@ -370,12 +377,12 @@ const AddBook = () => {
                 {submitting ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    {isEditMode ? 'Atualizando...' : 'Salvando...'}
+                    {isEditMode ? "Atualizando..." : "Salvando..."}
                   </>
                 ) : (
                   <>
                     <Save className="h-4 w-4 mr-2" />
-                    {isEditMode ? 'Atualizar Livro' : 'Salvar Livro'}
+                    {isEditMode ? "Atualizar Livro" : "Salvar Livro"}
                   </>
                 )}
               </Button>
