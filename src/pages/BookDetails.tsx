@@ -161,7 +161,7 @@ const BookDetails = () => {
       <div className="animate-fade-in">
         <div className="mb-6">
           <Button variant="ghost" size="sm" asChild>
-            <Link to="/catalog">
+            <Link to="/catalogo">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Voltar ao Catálogo
             </Link>
@@ -294,7 +294,7 @@ const BookDetails = () => {
                 {isLibrarianOrAdmin ? (
                   <>
                     <Button variant="outline" className="justify-start" asChild>
-                      <Link to={`/edit-book/${book.id}`}>
+                      <Link to={`/editar-livro/${book.id}`}>
                         <Pencil className="h-4 w-4 mr-2" />
                         Editar Livro
                       </Link>
