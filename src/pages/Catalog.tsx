@@ -22,7 +22,6 @@ const Catalog = () => {
   const fetchBooks = async (search: string = "") => {
     setLoading(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 800));
       const response = await booksAPI.getAll(page, limit, search);
       setBooks(response);
       setFilteredBooks(response);
