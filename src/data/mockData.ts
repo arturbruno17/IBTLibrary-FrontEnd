@@ -1,118 +1,117 @@
 
-import { Book, User, Role } from '@/types';
+import { Book, Loan, LoanStatus, Role, User } from "@/types";
 
 export const mockBooks: Book[] = [
   {
-    id: '1',
-    title: 'The Great Gatsby',
-    author: 'F. Scott Fitzgerald',
-    isbn: '9780743273565',
-    publisher: 'Scribner',
-    publishedYear: 1925,
-    description: 'A story of wealth, love, and tragedy set in the Roaring Twenties.',
-    cover: 'https://covers.openlibrary.org/b/id/8432047-M.jpg',
-    quantity: 3,
-    availableQuantity: 1,
-    createdAt: '2023-01-01T00:00:00Z',
-    updatedAt: '2023-01-01T00:00:00Z'
-  },
-  {
-    id: '2',
-    title: 'To Kill a Mockingbird',
-    author: 'Harper Lee',
-    isbn: '9780061120084',
-    publisher: 'HarperCollins',
-    publishedYear: 1960,
-    description: 'A novel about racial injustice and moral growth in the American South.',
-    cover: 'https://covers.openlibrary.org/b/id/8810494-M.jpg',
+    id: 1,
+    isbn: "9780545010221",
+    title: "Harry Potter e a Pedra Filosofal",
+    author: "J.K. Rowling",
     quantity: 5,
-    availableQuantity: 3,
-    createdAt: '2023-01-02T00:00:00Z',
-    updatedAt: '2023-01-02T00:00:00Z'
+    available: 3,
+    description: "O primeiro livro da série Harry Potter."
   },
   {
-    id: '3',
-    title: '1984',
-    author: 'George Orwell',
-    isbn: '9780451524935',
-    publisher: 'Signet Classics',
-    publishedYear: 1949,
-    description: 'A dystopian novel about totalitarianism, surveillance, and thought control.',
-    cover: 'https://covers.openlibrary.org/b/id/8575141-M.jpg',
-    quantity: 4,
-    availableQuantity: 2,
-    createdAt: '2023-01-03T00:00:00Z',
-    updatedAt: '2023-01-03T00:00:00Z'
-  },
-  {
-    id: '4',
-    title: 'Pride and Prejudice',
-    author: 'Jane Austen',
-    isbn: '9780141439518',
-    publisher: 'Penguin Classics',
-    publishedYear: 1813,
-    description: 'A romantic novel of manners that satirizes issues of marriage, social class, and prejudice.',
-    cover: 'https://covers.openlibrary.org/b/id/8479576-M.jpg',
+    id: 2,
+    isbn: "9780618260300",
+    title: "O Senhor dos Anéis: A Sociedade do Anel",
+    author: "J.R.R. Tolkien",
     quantity: 3,
-    availableQuantity: 0,
-    createdAt: '2023-01-04T00:00:00Z',
-    updatedAt: '2023-01-04T00:00:00Z'
+    available: 1,
+    description: "A primeira parte da trilogia O Senhor dos Anéis."
   },
   {
-    id: '5',
-    title: 'The Catcher in the Rye',
-    author: 'J.D. Salinger',
-    isbn: '9780316769488',
-    publisher: 'Little, Brown and Company',
-    publishedYear: 1951,
-    description: 'A novel about teenage alienation and the loss of innocence.',
-    cover: 'https://covers.openlibrary.org/b/id/8231432-M.jpg',
+    id: 3,
+    isbn: "9780061120084",
+    title: "O Sol é para Todos",
+    author: "Harper Lee",
     quantity: 2,
-    availableQuantity: 1,
-    createdAt: '2023-01-05T00:00:00Z',
-    updatedAt: '2023-01-05T00:00:00Z'
+    available: 2,
+    description: "Um clássico da literatura americana que aborda questões de racismo e injustiça."
+  },
+  {
+    id: 4,
+    isbn: "9780451524935",
+    title: "1984",
+    author: "George Orwell",
+    quantity: 4,
+    available: 4,
+    description: "Um romance distópico sobre totalitarismo e vigilância governamental."
+  },
+  {
+    id: 5,
+    isbn: "9780141439518",
+    title: "Orgulho e Preconceito",
+    author: "Jane Austen",
+    quantity: 3,
+    available: 2,
+    description: "Um romance clássico sobre classes sociais e relacionamentos."
   }
 ];
 
 export const mockUsers: User[] = [
   {
-    id: '1',
-    name: 'John Smith',
-    email: 'john@example.com',
-    role: Role.READER,
-    createdAt: '2023-01-01T00:00:00Z',
-    updatedAt: '2023-01-01T00:00:00Z'
+    id: 1,
+    name: "João Silva",
+    email: "joao@example.com",
+    role: Role.READER
   },
   {
-    id: '2',
-    name: 'Maria Johnson',
-    email: 'maria@example.com',
-    role: Role.READER,
-    createdAt: '2023-01-02T00:00:00Z',
-    updatedAt: '2023-01-02T00:00:00Z'
+    id: 2,
+    name: "Maria Santos",
+    email: "maria@example.com",
+    role: Role.READER
   },
   {
-    id: '3',
-    name: 'David Brown',
-    email: 'david@example.com',
-    role: Role.READER,
-    createdAt: '2023-01-03T00:00:00Z',
-    updatedAt: '2023-01-03T00:00:00Z'
+    id: 3,
+    name: "Carlos Oliveira",
+    email: "carlos@example.com",
+    role: Role.READER
   },
   {
-    id: '4',
-    name: 'Library Admin',
-    email: 'admin@library.com',
-    role: Role.ADMIN,
-    createdAt: '2023-01-04T00:00:00Z',
-    updatedAt: '2023-01-04T00:00:00Z'
+    id: 4,
+    name: "Ana Bibliotecária",
+    email: "ana@example.com",
+    role: Role.LIBRARIAN
   },
   {
-    id: '5',
-    name: 'Librarian Staff',
-    email: 'staff@library.com',
-    role: Role.LIBRARIAN,
-    createdAt: '2023-01-05T00:00:00Z',
-    updatedAt: '2023-01-05T00:00:00Z'
+    id: 5,
+    name: "Pedro Admin",
+    email: "pedro@example.com",
+    role: Role.ADMIN
+  }
+];
+
+export const mockLoans = [
+  {
+    id: 1,
+    bookId: 1,
+    userId: 1,
+    bookTitle: "Harry Potter e a Pedra Filosofal",
+    userName: "João Silva",
+    startDate: "2023-05-10",
+    dueDate: "2023-05-24",
+    status: "active"
+  },
+  {
+    id: 2,
+    bookId: 2,
+    userId: 2,
+    bookTitle: "O Senhor dos Anéis: A Sociedade do Anel",
+    userName: "Maria Santos",
+    startDate: "2023-05-12",
+    dueDate: "2023-05-26",
+    status: "overdue"
+  },
+  {
+    id: 3,
+    bookId: 3,
+    userId: 3,
+    bookTitle: "O Sol é para Todos",
+    userName: "Carlos Oliveira",
+    startDate: "2023-05-15",
+    dueDate: "2023-05-29",
+    status: "returned",
+    returnDate: "2023-05-28"
   }
 ];

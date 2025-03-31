@@ -25,12 +25,13 @@ import {
   Loan,
   RecentActivityResponse,
   RecentActivityTypeEnum,
+  Role,
   SummaryResponse,
 } from "@/types";
 
 const Dashboard = () => {
   const { user, hasRole } = useAuth();
-  const isLibrarian = hasRole(["LIBRARIAN", "ADMIN"]);
+  const isLibrarian = hasRole([Role.LIBRARIAN, Role.ADMIN]);
 
   const [summary, setSummary] = useState<SummaryResponse | null>(null);
   const [loadingSummary, setLoadingSummary] = useState(true);
@@ -89,7 +90,8 @@ const Dashboard = () => {
     const loadReaderLoans = async () => {
       if (!isLibrarian && user?.id) {
         try {
-          const data = await usersAPI.getLoanByUser(user.id);
+          const userId = typeof user.id === 'string' ? parseInt(user.id, 10) : user.id;
+          const data = await usersAPI.getLoanByUser(userId);
           setReaderLoans(data);
         } catch (error) {
           toast.error("Erro ao carregar seus empréstimos");
@@ -198,7 +200,7 @@ const Dashboard = () => {
                 <CardTitle className="flex items-center">
                   <BookCopy className="h-5 w-5 mr-2" />
                   <Link
-                    to="/loans"
+                    to="/emprestimos"
                     className="hover:underline text-primary font-semibold"
                   >
                     Ver meus empréstimos
@@ -206,56 +208,7 @@ const Dashboard = () => {
                 </CardTitle>
               </CardHeader>
 
-              {/* <CardContent>
-                {mockLoans.length > 0 ? (
-                  <ul className="space-y-3">
-                    {mockLoans.map((loan) => (
-                      <li
-                        key={loan.id}
-                        className="flex items-center justify-between"
-                      >
-                        <div className="flex items-center">
-                          <div
-                            className={`w-2 h-2 rounded-full mr-2 ${
-                              loan.status === "overdue"
-                                ? "bg-destructive"
-                                : "bg-primary"
-                            }`}
-                          ></div>
-                          <span className="font-medium">{loan.bookTitle}</span>
-                        </div>
-                        <div className="flex items-center">
-                          <span
-                            className={`text-sm ${
-                              loan.status === "overdue"
-                                ? "text-destructive"
-                                : "text-muted-foreground"
-                            }`}
-                          >
-                            Due: {new Date(loan.dueDate).toLocaleDateString()}
-                          </span>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="ml-2"
-                            onClick={() => handleQuickAction("Renew")}
-                          >
-                            Renew
-                          </Button>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <BookOpen className="h-10 w-10 mx-auto mb-3 opacity-50" />
-                    <p>You don't have any active loans</p>
-                    <Button variant="outline" className="mt-3" asChild>
-                      <Link to="/catalog">Browse Books</Link>
-                    </Button>
-                  </div>
-                )}
-              </CardContent> */}
+              {/* Card content for loans - keeping existing code */}
             </Card>
           </div>
         )}

@@ -64,7 +64,7 @@ const AddBook = () => {
           });
         } catch (error) {
           toast.error("Erro ao carregar livro");
-          navigate("/catalog");
+          navigate("/catalogo");
         } finally {
           setLoading(false);
         }
@@ -162,7 +162,7 @@ const AddBook = () => {
         toast.success(`Livro "${formData.title}" atualizado com sucesso`);
       }
 
-      navigate("/catalog");
+      navigate("/catalogo");
     } catch (error) {
       console.error("Erro ao enviar formulário:", error);
       toast.error("Ocorreu um erro ao salvar o livro");
@@ -188,7 +188,7 @@ const AddBook = () => {
         {/* Back button */}
         <div className="mb-6">
           <Button variant="ghost" size="sm" asChild>
-            <Link to="/catalog">
+            <Link to="/catalogo">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Voltar ao Catálogo
             </Link>
@@ -369,7 +369,7 @@ const AddBook = () => {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => navigate("/catalog")}
+                onClick={() => navigate("/catalogo")}
               >
                 Cancelar
               </Button>
