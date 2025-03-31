@@ -240,16 +240,42 @@ const Users = () => {
   };
 
   // Handle deleting a user
-  const handleDeleteUser = async (userId: number) => {
+//   const handleDeleteUser = async (userId: number) => {
+//     setIsProcessing(true);
+
+//     try {
+//       // Chama a API de exclusão real
+//       await usersAPI.delete(Number(userId));
+
+//       // Remove usuário da lista
+//       const userToDelete = users.find((u) => u.id === Number(userId));
+//       setUsers((prev) => prev.filter((user) => user.id !== Number(userId)));
+
+//       if (userToDelete) {
+//         toast.success(`Usuário "${userToDelete.name}" excluído com sucesso`);
+//       }
+//     } catch (error) {
+//       console.error("Erro ao excluir usuário:", error);
+//       toast.error("Erro ao excluir o usuário.");
+//     } finally {
+//       setIsProcessing(false);
+//     }
+//   };
+const handleDeleteUser = async (userId: number) => {
     setIsProcessing(true);
 
     try {
-      // Chama a API de exclusão real
-      await usersAPI.delete(Number(userId));
+      const loans = await usersAPI.getLoanByUser(userId);
 
-      // Remove usuário da lista
-      const userToDelete = users.find((u) => u.id === Number(userId));
-      setUsers((prev) => prev.filter((user) => user.id !== Number(userId)));
+      if (loans.length > 0) {
+        toast.error("Este usuário possui empréstimos ativos e não pode ser excluído.");
+        return;
+      }
+
+      await usersAPI.delete(userId);
+
+      const userToDelete = users.find((u) => u.id === userId);
+      setUsers((prev) => prev.filter((user) => user.id !== userId));
 
       if (userToDelete) {
         toast.success(`Usuário "${userToDelete.name}" excluído com sucesso`);
