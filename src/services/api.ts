@@ -3,6 +3,20 @@ import axios from 'axios';
 import { Book, Loan, User, Role, LoanStatus, SummaryResponse, RecentActivityResponse } from '@/types';
 import { toast } from "sonner";
 
+let logoutCallback: (() => void) | null = null;
+
+export const setLogoutCallback = (cb: () => void) => {
+    logoutCallback = cb;
+};
+
+export const handleUnauthorized = () => {
+    if (logoutCallback) {
+        logoutCallback();
+    } else {
+        console.warn("Logout automático não foi configurado corretamente.");
+    }
+};
+
 // Base API instance
 const api = axios.create({
     baseURL: 'http://localhost:8080/api/v1',
@@ -23,15 +37,34 @@ api.interceptors.request.use(
     (error) => Promise.reject(error)
 );
 
-// Handle response errors
+
+
 api.interceptors.response.use(
     (response) => response,
     (error) => {
-        const message = error.response?.data?.message || 'An error occurred';
-        toast.error(message);
+        const status = error.response?.status;
+        const message = error.response?.data?.message || 'Ocorreu um erro';
+
+        if (status === 401) {
+            toast.info("Sua sessão expirou. Faça login novamente.");
+            handleUnauthorized(); // 🔥 chama logout registrado
+        } else {
+            toast.error(message);
+        }
+
         return Promise.reject(error);
     }
 );
+
+// Handle response errors
+// api.interceptors.response.use(
+//     (response) => response,
+//     (error) => {
+//         const message = error.response?.data?.message || 'An error occurred';
+//         toast.error(message);
+//         return Promise.reject(error);
+//     }
+// );
 
 // Auth API
 export const authAPI = {

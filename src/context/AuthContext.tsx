@@ -4,7 +4,7 @@ import {useNavigate} from 'react-router-dom';
 import {toast} from "sonner";
 import {authAPI} from "@/services/api";
 import {jwtDecode} from "jwt-decode";
-
+import {setLogoutCallback} from "@/services/api";
 
 // Initial state
 const initialState: AuthState = {
@@ -111,10 +111,17 @@ const AuthContext = createContext<AuthContextType>({
     hasRole: () => false
 });
 
+
+
+
 // Create provider
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({children}) => {
     const [state, dispatch] = useReducer(authReducer, initialState);
     const navigate = useNavigate();
+
+    useEffect(() => {
+        setLogoutCallback(logout);
+      }, []);
 
     // Load user from token on mount
     useEffect(() => {
