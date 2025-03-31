@@ -412,7 +412,7 @@ const Loans = () => {
           className="bg-green-500/10 text-green-700 hover:bg-green-500/20"
         >
           <CheckCircle className="h-3 w-3 mr-1" />
-          Returned
+          Retornado
         </Badge>
       );
     }
@@ -865,7 +865,7 @@ const Loans = () => {
                                       ? `Retornado em ${formatDate(
                                           loan.return_date
                                         )}`
-                                      : "Returned"}
+                                      : "Retornado"}
                                   </span>
                                 )}
                               </div>
