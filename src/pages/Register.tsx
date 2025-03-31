@@ -31,7 +31,7 @@ const Register = () => {
   useEffect(() => {
     // If already authenticated, redirect to dashboard
     if (isAuthenticated) {
-      navigate("/dashboard", { replace: true });
+      navigate("/login", { replace: true });
     }
   }, [isAuthenticated, navigate]);
 

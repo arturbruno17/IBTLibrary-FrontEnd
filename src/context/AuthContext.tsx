@@ -193,7 +193,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({children}
             });
 
             toast.success(`Bem-vindo de volta, ${userFromToken.name}!`);
-            navigate('/dashboard');
+            navigate('/painel');
         } catch (error: any) {
             console.error("Erro no login:", error);
             const message = error.response?.data?.message || 'Credenciais inválidas';

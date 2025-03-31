@@ -52,7 +52,7 @@ const Catalog = () => {
         <div className="flex justify-between items-center mb-6">
           <h1>Catálogo de Livros</h1>
           {hasRole([Role.LIBRARIAN, Role.ADMIN]) && (
-            <Button onClick={() => navigate("/add-book")}>
+            <Button onClick={() => navigate("/adicionar-livro")}>
               <Plus className="h-4 w-4 mr-2" />
               Adicionar Livro
             </Button>

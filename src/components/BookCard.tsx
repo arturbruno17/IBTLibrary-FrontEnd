@@ -19,7 +19,7 @@ const BookCard: React.FC<BookCardProps> = ({ book, className }) => {
       className
     )}
   >
-    <Link to={`/books/${book.id}`} className="block h-full">
+    <Link to={`/livros/${book.id}`} className="block h-full">
       <div className="flex flex-col justify-between h-full p-4">
         <div>
           <h3 className="font-medium leading-tight line-clamp-2">{book.title}</h3>

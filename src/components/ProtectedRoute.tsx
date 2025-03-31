@@ -26,7 +26,7 @@ const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
       : hasRole(allowedRoles);
 
     if (!hasPermission) {
-      return <Navigate to="/dashboard" replace />;
+      return <Navigate to="/painel" replace />;
     }
   }
 
