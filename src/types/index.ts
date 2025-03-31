@@ -16,7 +16,7 @@ export interface AuthState {
 
 // User
 export interface User {
-    id: number;
+    id: number | string;
     name: string;
     role: Role;
     email: string;
@@ -30,6 +30,7 @@ export interface Book {
     author: string;
     quantity: number;
     available: number;
+    description?: string;
 }
 
 // Loan related interfaces

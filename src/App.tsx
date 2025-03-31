@@ -41,7 +41,7 @@ const App = () => {
             <Routes>
               {/* Public routes */}
               <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
+              <Route path="/registro" element={<Register />} />
 
               {/* Protected routes for all authenticated users */}
               <Route
@@ -53,7 +53,7 @@ const App = () => {
                 }
               />
               <Route
-                path="/dashboard"
+                path="/painel"
                 element={
                   <ProtectedRoute>
                     <Dashboard />
@@ -61,7 +61,7 @@ const App = () => {
                 }
               />
               <Route
-                path="/catalog"
+                path="/catalogo"
                 element={
                   <ProtectedRoute>
                     <Catalog />
@@ -69,7 +69,7 @@ const App = () => {
                 }
               />
               <Route
-                path="/books/:id"
+                path="/livros/:id"
                 element={
                   <ProtectedRoute>
                     <BookDetails />
@@ -77,7 +77,7 @@ const App = () => {
                 }
               />
               <Route
-                path="/loans"
+                path="/emprestimos"
                 element={
                   <ProtectedRoute>
                     <Loans />
@@ -85,7 +85,7 @@ const App = () => {
                 }
               />
               <Route
-                path="/profile"
+                path="/perfil"
                 element={
                   <ProtectedRoute>
                     <Profile />
@@ -95,7 +95,7 @@ const App = () => {
 
               {/* Routes for librarians and admins */}
               <Route
-                path="/add-book"
+                path="/adicionar-livro"
                 element={
                   <ProtectedRoute allowedRoles={[Role.LIBRARIAN, Role.ADMIN]}>
                     <AddBook />
@@ -103,7 +103,7 @@ const App = () => {
                 }
               />
               <Route
-                path="/edit-book/:id"
+                path="/editar-livro/:id"
                 element={
                   <ProtectedRoute allowedRoles={[Role.LIBRARIAN, Role.ADMIN]}>
                     <AddBook />
@@ -113,7 +113,7 @@ const App = () => {
 
               {/* Admin-only routes */}
               <Route
-                path="/users"
+                path="/usuarios"
                 element={
                   <ProtectedRoute allowedRoles={[Role.ADMIN, Role.LIBRARIAN, Role.READER]}>
                     <Users />

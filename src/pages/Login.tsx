@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -25,7 +26,7 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const from = (location.state as any)?.from || "/dashboard";
+  const from = (location.state as any)?.from || "/painel";
 
   useEffect(() => {
     // If already authenticated, redirect to dashboard
@@ -180,7 +181,7 @@ const Login = () => {
           <CardFooter className="flex justify-center">
             <p className="text-sm text-muted-foreground">
               Não tem uma conta?{" "}
-              <Link to="/register" className="text-primary hover:underline">
+              <Link to="/registro" className="text-primary hover:underline">
                 Criar conta
               </Link>
             </p>

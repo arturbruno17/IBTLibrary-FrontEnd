@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Navbar from './Navbar';
 import { useAuth } from '@/context/AuthContext';
@@ -32,25 +31,25 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     {
       label: 'Painel',
       icon: <Home className="h-5 w-5" />,
-      href: '/dashboard',
+      href: '/painel',
       roles: [Role.READER, Role.LIBRARIAN, Role.ADMIN],
     },
     {
       label: 'Catálogo',
       icon: <BookOpen className="h-5 w-5" />,
-      href: '/catalog',
+      href: '/catalogo',
       roles: [Role.READER, Role.LIBRARIAN, Role.ADMIN],
     },
     {
       label: 'Empréstimos',
       icon: <BookCopy className="h-5 w-5" />,
-      href: '/loans',
+      href: '/emprestimos',
       roles: [Role.READER, Role.LIBRARIAN, Role.ADMIN],
     },
     {
       label: 'Usuários',
       icon: <Users className="h-5 w-5" />,
-      href: '/users',
+      href: '/usuarios',
       roles: [Role.LIBRARIAN, Role.ADMIN, Role.READER],
     },
   ];

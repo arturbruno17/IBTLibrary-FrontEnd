@@ -84,7 +84,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, logout }) => {
           {/* Add book button (only for librarians and admins) */}
           {user && (user.role === "LIBRARIAN" || user.role === "ADMIN") && (
             <Button variant="ghost" size="icon" asChild>
-              <Link to="/add-book" aria-label="Adicionar livro">
+              <Link to="/adicionar-livro" aria-label="Adicionar livro">
                 <PlusCircle className="h-5 w-5" />
               </Link>
             </Button>
@@ -117,7 +117,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, logout }) => {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
                   <Link
-                    to="/profile"
+                    to="/perfil"
                     className="cursor-pointer flex w-full items-center"
                   >
                     <User className="h-4 w-4 mr-2" />
