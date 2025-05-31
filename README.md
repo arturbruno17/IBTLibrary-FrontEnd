@@ -15,6 +15,16 @@ Para realizar a configuração do projeto, você precisará realizar os seguinte
 2. Criar um arquivo `.env` na pasta raiz do projeto e configurar a variável de ambiente `VITE_API_BASE_URL`.
     - Essa variável de ambiente se refere a URL base da API que o front-end consome.
 3. Após isso, rode o projeto com o comando:
+
 ```shell
 npm run dev
 ```
+
+# Evidências
+
+A seguir, fotos de evidência da apresentação e treinamento de uso do sistem aaos líderes da igreja.
+
+<div align="center">
+   <img src="./20250525_201202.jpg" width="49%">
+   <img src="./20250525_201021.jpg" width="49%">
+</div>
