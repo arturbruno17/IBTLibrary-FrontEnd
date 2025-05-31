@@ -22,7 +22,7 @@ npm run dev
 
 # Evidências
 
-A seguir, fotos de evidência da apresentação e treinamento de uso do sistem aaos líderes da igreja.
+A seguir, evidências da apresentação e treinamento de uso do sistema aos líderes da igreja.
 
 <div align="center">
    <img src="./20250525_201202.jpg" width="49%">
